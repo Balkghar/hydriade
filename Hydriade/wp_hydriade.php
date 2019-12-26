@@ -285,6 +285,7 @@ class wp_hydriade{
         do_action('wp_party_admin_save',$post_id, $_POST);
 
     }
+    /*Category custom pour les parties de jeu de rôle, cela permettra de les triers plus facilement plus atrd*/
     function add_custom_taxonomy() {
  
         $labels = array(

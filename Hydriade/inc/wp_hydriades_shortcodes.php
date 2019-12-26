@@ -8,15 +8,18 @@ class wp_hydriade_shortcode{
     }
     public function show_parties(){
         
+        /**Permet d'obtenir la taxonomy qu'on a créé avant */
         $terms = get_terms(array(
             'taxonomy' => 'types',
             'hide_empty' => false,
         ));
+        /**Vérifie si le tableau n'est pas vide */
         if(!empty($terms)){
+            /**Boucle pour afficher les éléments du tableau */
             foreach($terms as $term){
-                /*$html .= '<h2>'.$term->name.'</h2>';*/
-                
+                /**Reset du query */
                 wp_reset_query();
+                /**Argument pour chercher les parties selon la taxonomy */
                 $args = array('post_type' => 'wp_parties',
                     'tax_query' => array(
                         array(
@@ -27,6 +30,7 @@ class wp_hydriade_shortcode{
                     ),
                 );
 
+                /**Affichage des informations pour les parties */
                 $loop = new WP_Query($args);
                 if($loop->have_posts()) {
                     $html .= '<h2>'.$term->name.'</h2><div class="row">';
@@ -39,29 +43,7 @@ class wp_hydriade_shortcode{
                     $html .= "Pas encore de parties...";
                 }
                 $html .= '</div>';
-                /*$args = array(
-                    'post_type' => 'wp_parties',
-                    'tax_query' => array(
-                        array(
-                            'taxonomy' => 'types',   // taxonomy name
-                            'field' => 'term_id',           // term_id, slug or name
-                            'terms' => $term->term_id, // term id, term slug or term name
-                        )
-                    )
-                );
-
-                $query = new WP_Query($args);
-
-                if ( $query->have_posts() ) {
-                    while ( $query->have_posts() ) {
-                 
-                        $query->the_post();
-                        // Post data goes here.
-                    }
-                }
-                else{
-                    $html .= 'Pas encore de topic !';
-                }*/
+                /**Fin de la boucle */
             }
         }
         return $html;
