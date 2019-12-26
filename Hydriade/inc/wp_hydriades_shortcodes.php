@@ -2,6 +2,7 @@
 class wp_hydriade_shortcode{
     public function __construct(){
         add_action('init', array($this,'register_hydriade_shortcodes')); //shortcodes
+        add_action('addRole', array($this,'add_role_hydriadeMJ'));
     }
     public function register_hydriade_shortcodes(){
         add_shortcode('wp_parties', array($this,'show_parties'));
@@ -47,6 +48,7 @@ class wp_hydriade_shortcode{
                     $html .= '</div>';
                     /**Fin de la boucle */
                 }
+                $html .= '<button>JE VEUX DEVENIR MJ</button>';
             }
             wp_reset_postdata();
         }
@@ -54,6 +56,9 @@ class wp_hydriade_shortcode{
             $html .="<h2>Vous devez vous connecter pour pouvoir voir les parties des hydriades</h2>";
         }
         return $html;
+    }
+    public function add_role_hydriadeMJ($ticket){
+        add_user_meta(get_current_user_id(),"RoleHydriade", "MJ");
     }
 }
 $wp_hydriade_shortcode = new wp_hydriade_shortcode;
