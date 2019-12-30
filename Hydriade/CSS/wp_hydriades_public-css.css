@@ -5,7 +5,7 @@
   /* Float four columns side by side */
   .column {
     float: left;
-    width: 25%;
+    width: 33%;
     padding: 0 10px;
   }
   
@@ -24,29 +24,33 @@
     .column {
       width: 100%;
       display: block;
-      margin-bottom: 20px;
+    }
+  }
+  @media screen and (max-width: 800px) and (min-width: 601px){
+    .column {
+      width: 50%;
+      display: block;
     }
   }
   
   /* Style the counter cards */
   .card {
     padding: 10px;
-    border-radius: 10px;
     text-align: left;
-    background-color: #f2f2f2;
+    margin-bottom: 20px;
   }
   .pitch {
     background-color: #e6e6e6;
     padding: 10px;
-    border-radius: 10px;
   }
   .pitch p {
     margin-left: 10px;
   }
-  .pitch button {
-    background-color: #d9d9d9;
-    padding: 10px;
-
+  .pitch b {
+    background-color: grey;
+    color: white;
+    padding: 3px;
+    border-radius: 50%;
   }
   .displayNone {
     display: none;
