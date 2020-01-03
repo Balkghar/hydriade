@@ -16,6 +16,7 @@ class wp_hydriade{
     public function __construct(){
         add_action('admin_menu', array($this,'custom_menu'));
         add_action('init', array($this, 'register_parties'));
+        add_action('init', array($this,'addGMOrPLW'));
         add_action('add_meta_boxes', array($this,'add_party_meta_boxes')); //add meta boxes
         add_filter('the_content', array($this,'prepend_party_meta_to_content')); //gets our meta data and dispayed it before the content
         add_action('save_post_wp_parties', array($this,'save_party')); //save party
@@ -41,10 +42,66 @@ class wp_hydriade{
     function admin_hydriade(){
         echo "<h1>Hydriade</h1>";
     }
+    /**Page de gestion des différents rôles pour les hydriades */
     function gestRole(){
         echo "<h1>Gestion des rôles pour les hydriades</h1>";
-        echo get_current_blog_id();
+        $users = get_users(array('meta_key' => 'hydRole', 'meta_value' => 'waitGM'));
+        echo '<h2>Personne voulant devenir MJ</h2><table><tr><th>Nom ou pseudo</th><th>Numéro de billet</th></tr>';
+        foreach($users as $user){
+            foreach(get_user_meta($user->ID, 'hydBillet') as $value){
+                echo '<tr><td>'. $user->display_name.'</td><td>'.$value.'</td><td><form enctype="multipart/form-data" action="" name="becomeGMW" id="becomeGMW" method="post"><input type="hidden" name="userIDGM" value="'.$user->ID.'"><input type="submit" value="Promouvoir maître de jeu"></form></td></tr>';
+            }
+        }
+        echo '</table>';
+        $users2 = get_users(array('meta_key' => 'hydRole', 'meta_value' => 'waitPL'));
+        echo '<h2>Personne voulant devenir joueur</h2><table><tr><th>Nom ou pseudo</th><th>Numéro de billet</th></tr>';
+        foreach($users2 as $user){
+            foreach(get_user_meta($user->ID, 'hydBillet') as $value){
+                echo '<tr><td>'. $user->display_name.'</td><td>'.$value.'</td><td><form enctype="multipart/form-data" action="" name="becomePLW" id="becomePLW" method="post"><input type="hidden" name="userIDPL" value="'.$user->ID.'"><input type="submit" value="Promouvoir joueur"></form></td></tr>';
+            }
+        }
+        echo '</table>';
 
+        $users3 = get_users(array('meta_key' => 'hydRole', 'meta_value' => 'PL'));
+        echo '<h2>Personne étant joueur</h2><table><tr><th>Nom ou pseudo</th><th>Numéro de billet</th></tr>';
+        foreach($users3 as $user){
+            foreach(get_user_meta($user->ID, 'hydBillet') as $value){
+                echo '<tr><td>'. $user->display_name.'</td><td>'.$value.'</td><td><form enctype="multipart/form-data" action="" name="deletePLW" id="deletePLW" method="post"><input type="hidden" name="userIDPLD" value="'.$user->ID.'"><input type="submit" value="Supprimer joueur"></form></td></tr>';
+            }
+        }
+        echo '</table>';
+
+        $users4 = get_users(array('meta_key' => 'hydRole', 'meta_value' => 'GM'));
+        echo '<h2>Personne étant maître de jeu</h2><table><tr><th>Nom ou pseudo</th><th>Numéro de billet</th></tr>';
+        foreach($users4 as $user){
+            foreach(get_user_meta($user->ID, 'hydBillet') as $value){
+                echo '<tr><td>'. $user->display_name.'</td><td>'.$value.'</td><td><form enctype="multipart/form-data" action="" name="deleteGMW" id="deleteGMW" method="post"><input type="hidden" name="userIDGMD" value="'.$user->ID.'"><input type="submit" value="Supprimer maître de jeu"></form></td></tr>';
+            }
+        }
+        echo '</table>';
+    }
+    /**Permet d'ajouter les utilisateurs voulant devenir MJ ou joueur et ayant été validé par un admin ou de les supprimer*/
+    public function addGMOrPLW(){
+        if(!empty($_POST['userIDGM'])){
+            if(get_userdata(esc_attr(strip_tags($_POST['userIDGM'])))){
+                update_user_meta($_POST['userIDGM'], 'hydRole', 'GM');
+            }
+        }
+        if(!empty($_POST['userIDPL'])){
+            if(get_userdata(esc_attr(strip_tags($_POST['userIDPL'])))){
+                update_user_meta($_POST['userIDPL'], 'hydRole', 'PL');
+            }
+        }
+        if(!empty($_POST['userIDGMD'])){
+            if(get_userdata(esc_attr(strip_tags($_POST['userIDGMD'])))){
+                delete_user_meta($_POST['userIDGMD'], 'hydRole', 'GM');
+            }
+        }
+        if(!empty($_POST['userIDPLD'])){
+            if(get_userdata(esc_attr(strip_tags($_POST['userIDPLD'])))){
+                delete_user_meta($_POST['userIDPLD'], 'hydRole', 'PL');
+            }
+        }
     }
     function register_parties(){
         //Labels for post type
