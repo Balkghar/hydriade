@@ -2,12 +2,16 @@
 class wp_hydriade_shortcode{
     public function __construct(){
         add_action('init', array($this,'register_hydriade_shortcodes')); //shortcodes
-        add_action('addRole', array($this,'add_role_hydriadeMJ'));
         add_action('init', array($this,'partie_add'));
+        add_action('init', array($this,'plOrGmAdd'));
     }
     public function register_hydriade_shortcodes(){
         add_shortcode('wp_parties', array($this,'show_parties'));
     }
+    /**
+     * Fonction permettant de montrer les parties aux clients connectés
+     * 
+     */
     public function show_parties(){
         $Languages = array(
             "french" => "Français",
@@ -40,15 +44,13 @@ class wp_hydriade_shortcode{
 
                     /**Affichage des informations pour les parties */
                     $loop = new WP_Query($args);
+                    $html .= '<h2>'.$term->name.'</h2><div class="row">';
                     if($loop->have_posts()) {
-                        $html .= '<h2>'.$term->name.'</h2><div class="row">';
+                        
 
                         while($loop->have_posts()) : $loop->the_post();
                             $html .= '<div class="column"><div class="card"><h3>'.get_the_title().'</h3><p><B>Univers de jeu : </B>'.get_post_meta(get_the_ID(),'wp_party_univers', true).'</p><p><B>Ambiance : </B>'.get_post_meta(get_the_ID(),'wp_party_ambiance', true).'</p><p><B>MJ : </B>'.get_post_meta(get_the_ID(),'wp_party_GM', true).'</p><p><B>Nombre de joueurs : </B>'.get_post_meta(get_the_ID(),'wp_party_players', true).'</p><p><B>Temps estimé : </B>'.get_post_meta(get_the_ID(),'wp_party_time', true).'</p><p><B>Langue : </B>'.get_post_meta(get_the_ID(),'wp_party_language', true).'</p><div class="pitch"><button onclick="showOrHide('.get_the_ID().')">Pitch du scénario<b>+</b></button><div id="'.get_the_ID().'" class="displayNone"><p>'.get_post_meta(get_the_ID(),'wp_party_pitch', true).'</p></div></div></div></div>';
                         endwhile;
-                    }
-                    else{
-                        $html .= "Pas encore de parties...";
                     }
                     $html .= '<div class="column"><div class="card"><button onclick="showOrHide('.$term->term_id.')"><h3><b>+Ajouter une partie+</b></h3></button><div id="'.$term->term_id.'" class="displayNone">
                     <form enctype="multipart/form-data" action="" name="new_post" id="new_post" method="post">
@@ -91,6 +93,20 @@ class wp_hydriade_shortcode{
                     /**Fin de la boucle */
                 }
             }
+            $html .= '<br>
+            <p>Si vous avez acheté un billet pour les hydriades, c\'est ici que vous devez entrez votre numéro de billet pour pouvoir proposer et participer à des parties</p>
+            <form enctype="multipart/form-data" action="" name="becomeGM" id="becomeGM" method="post">
+            Numéro de billet :<br>
+            <input type="text" name="billetGM">
+            <input name="userID" type="hidden" value="'.get_current_user_id().'">
+            <input type="submit" value="Je veux devenir un maître de jeu !">
+            </form><br>
+            <form enctype="multipart/form-data" action="" name="becomePL" id="becomePL" method="post">
+            Numéro de billet :<br>
+            <input type="text" name="billetPL">
+            <input name="userID" type="hidden" value="'.get_current_user_id().'">
+            <input type="submit" value="Je veux devenir un joueur !">
+            </form>';
             wp_reset_postdata();
         }
         else{
@@ -116,12 +132,24 @@ class wp_hydriade_shortcode{
             update_post_meta($post_id, 'wp_party_time', esc_attr(strip_tags($_POST['time'])));
             update_post_meta($post_id, 'wp_party_players', esc_attr(strip_tags($_POST['players'])));
         }
-        else{
-
-        }
     }
-    public function add_role_hydriadeMJ($ticket){
-        add_user_meta(get_current_user_id(),"RoleHydriade", "MJ");
+    public function plOrGmAdd(){
+        if(!empty($_POST['billetGM']) && !empty($_POST['userID'])){
+            if(get_userdata(esc_attr(strip_tags($_POST['userID'])))){
+                
+            }
+            else{
+                
+            }
+        }
+        if(!empty($_POST['billetPL']) && !empty($_POST['userID'])){
+            if(get_userdata(esc_attr(strip_tags($_POST['userID'])))){
+
+            }
+            else{
+
+            }
+        }
     }
 }
 $wp_hydriade_shortcode = new wp_hydriade_shortcode;

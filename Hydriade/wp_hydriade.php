@@ -35,10 +35,16 @@ class wp_hydriade{
             array($this,'admin_hydriade'), 
             'dashicons-portfolio',
             6
-           );
+        );
+        add_submenu_page('hydriade', 'Gestion des rôles', 'Gestion des rôles', 'edit_posts', 'admin_hydriade',array($this,'gestRole'));
     }
     function admin_hydriade(){
         echo "<h1>Hydriade</h1>";
+    }
+    function gestRole(){
+        echo "<h1>Gestion des rôles pour les hydriades</h1>";
+        echo get_current_blog_id();
+
     }
     function register_parties(){
         //Labels for post type
@@ -308,8 +314,8 @@ class wp_hydriade{
           'query_var' => true,
           'rewrite' => array( 'slug' => 'type' ),
         ));
-        add_submenu_page('hydriade', 'Ajouter un départ', 'Ajouter un départ', 'edit_posts', 'edit-tags.php?taxonomy=types',false );
-      }
+        add_submenu_page('hydriade', 'Ajouter un départ', 'Ajouter un départ', 'edit_posts', 'edit-tags.php?taxonomy=types',false);
+    }
     public function plugin_activate(){  
         //call our custom content type function
         $this->register_parties();
