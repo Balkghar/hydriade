@@ -37,10 +37,15 @@ class wp_hydriade{
             'dashicons-portfolio',
             6
         );
-        add_submenu_page('hydriade', 'Gestion des rôles', 'Gestion des rôles', 'edit_posts', 'admin_hydriade',array($this,'gestRole'));
+        add_submenu_page('hydriade', 'Gestion des rôles', 'Gestion des rôles', 'edit_posts', 'admin_HydRole',array($this,'gestRole'));
+        add_submenu_page('hydriade', 'Gestion des inscriptions aux parties', 'Gestion des inscriptions aux parties', 'edit_posts', 'admin_HydPartie',array($this,'gestPlayer'));
+
     }
     function admin_hydriade(){
         echo "<h1>Hydriade</h1>";
+    }
+    function gestPlayer(){
+        echo "<h1>Gestion des inscriptions aux parties</h1>";
     }
     /**Page de gestion des différents rôles pour les hydriades */
     function gestRole(){

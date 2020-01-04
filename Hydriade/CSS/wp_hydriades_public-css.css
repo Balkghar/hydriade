@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css?family=Raleway');
+  
   body {
     font-family: Arial, Helvetica, sans-serif;
   }
@@ -38,24 +40,58 @@
     padding: 10px;
     text-align: left;
     margin-bottom: 20px;
+    font-family: Raleway;
+    line-height: 1;
+  }
+  .card h3 {
+    color: #009900;
+    text-transform: uppercase;
+  }
+  .card p {
+    font-size: 20px;
+    color: #665555;
+  }
+  .caTitle {
+    color: #ffffff;
+    font-size: 32px;
+    text-align: center;
+    background-color: #009900;
+    font-family: Raleway;
+    line-height: 100px;
+    width: 100vw;
+    position: relative;
+    left: 50%;
+    right: 50%;
+    margin-left: -50vw;
+    margin-right: -50vw;
   }
   .pitch {
-    background-color: #e6e6e6;
+    background-color: #F5F5F5;
+    border-style: solid;
+    border-width: 1px;
+    border-color: #DCDCDC;
     padding: 10px;
+  }
+  .pitch button {
+    text-transform: uppercase;
+    font-weight: bold;
+    color: #665555;
+  }
+  .more{
+    background-color: #DCDCDC;
+    color: white;
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    display: inline-block;
+    line-height: normal;
   }
   .pitch p {
     margin-left: 10px;
-  }
-  .pitch b {
-    background-color: grey;
-    color: white;
-    padding: 3px;
-    border-radius: 50%;
   }
   .displayNone {
     display: none;
   }
   .displayBlock{
     display: block;
-    background-color: white;
   }

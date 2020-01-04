@@ -3,6 +3,7 @@ class wp_hydriade_shortcode{
     public function __construct(){
         add_action('init', array($this,'register_hydriade_shortcodes')); //shortcodes
         add_action('init', array($this,'partie_add'));
+        add_action('init', array($this,'player_add_partie'));
         add_action('init', array($this,'plOrGmAdd'));
     }
     public function register_hydriade_shortcodes(){
@@ -44,11 +45,30 @@ class wp_hydriade_shortcode{
 
                     /**Affichage des informations pour les parties */
                     $loop = new WP_Query($args);
-                    $html .= '<h2>'.$term->name.'</h2><div class="row">';
+                    $html .= '<h2 class="caTitle">'.$term->name.'</h2><div class="row">';
                     if($loop->have_posts()) {
                         while($loop->have_posts()) : $loop->the_post();
-                            $html .= '<div class="column"><div class="card"><h3>'.get_the_title().'</h3><p><B>Univers de jeu : </B>'.get_post_meta(get_the_ID(),'wp_party_univers', true).'</p><p><B>Ambiance : </B>'.get_post_meta(get_the_ID(),'wp_party_ambiance', true).'</p><p><B>MJ : </B>'.get_post_meta(get_the_ID(),'wp_party_GM', true).'</p><p><B>Nombre de joueurs : </B>'.get_post_meta(get_the_ID(),'wp_party_players', true).'</p><p><B>Temps estimé : </B>'.get_post_meta(get_the_ID(),'wp_party_time', true).'</p><p><B>Langue : </B>'.get_post_meta(get_the_ID(),'wp_party_language', true).'</p><div class="pitch"><button onclick="showOrHide('.get_the_ID().')">Pitch du scénario<b>+</b></button><div id="'.get_the_ID().'" class="displayNone"><p>'.get_post_meta(get_the_ID(),'wp_party_pitch', true).'</p></div></div></div></div>';
+                            $html .= '<div class="column"><div class="card"><h3>'.get_the_title().'</h3><p><B>Univers de jeu : </B>'.get_post_meta(get_the_ID(),'wp_party_univers', true).'</p><p><B>Ambiance : </B>'.get_post_meta(get_the_ID(),'wp_party_ambiance', true).'</p><p><B>MJ : </B>'.get_post_meta(get_the_ID(),'wp_party_GM', true).'</p><p><B>Nombre de joueurs : </B>'.get_post_meta(get_the_ID(),'wp_party_players', true).'</p><p><B>Temps estimé : </B>'.get_post_meta(get_the_ID(),'wp_party_time', true).'h</p><p><B>Langue : </B>'.get_post_meta(get_the_ID(),'wp_party_language', true).'</p><div class="pitch"><button onclick="showOrHide('.get_the_ID().')">Pitch du scénario<div class="more">+</div></button><div id="'.get_the_ID().'" class="displayNone"><p>'.get_post_meta(get_the_ID(),'wp_party_pitch', true).'</p></div></div>';
+                            foreach(get_user_meta(get_current_user_id(), 'hydRole') as $value){
+                                if($value == 'GM' || $value == 'PL'){
+                                    $html .= 
+                                    '<br>
+                                    <form enctype="multipart/form-data" action="" name="add_player" id="add_player" method="post">
+                                    Nom du joueur :<br>
+                                    <input type="text" name="name">
+                                    Mail du joueur :<br>
+                                    <input type="text" name="mail">
+                                    <input type="hidden" name="userID" value="'.get_current_user_id().'">
+                                    <input type="hidden" name="postID" value="'.get_the_ID().'">
+                                    <input type="submit" value="S\'inscrire à la partie">
+                                    </form>
+                                    ';
+                                }
+                            }
+                            $html .= '</div></div>';
                         endwhile;
+                        
+                        
                     }
                     /**Vérifie si l'utilisateur est un maître de jeu */
                     foreach(get_user_meta(get_current_user_id(), 'hydRole') as $value){
@@ -123,6 +143,14 @@ class wp_hydriade_shortcode{
             $html .="<h2>Vous devez vous connecter pour pouvoir voir les parties des hydriades</h2>";
         }
         return $html;
+    }
+    /**Fonction permettant l'ajout d'un joueur à une partie */
+    public function player_add_partie(){
+        if(!empty($_POST['name']) && !empty($_POST['userID']) && !empty($_POST['postID']) && !empty($_POST['mail'])){
+            if(get_userdata(esc_attr(strip_tags($_POST['userID'])))){
+
+            }
+        }
     }
     /**Permet d'ajouter une partie */
     public function partie_add(){
