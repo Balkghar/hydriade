@@ -1,5 +1,6 @@
 <?php
 class wp_hydriade_shortcode{
+    /**Fonction de construction de la partie shortcode de l'extension */
     public function __construct(){
         add_action('init', array($this,'register_hydriade_shortcodes')); //shortcodes
         add_action('init', array($this,'partie_add'));
@@ -14,11 +15,13 @@ class wp_hydriade_shortcode{
      * 
      */
     public function show_parties(){
+        /**Déclaration du tableau des langues */
         $Languages = array(
             "french" => "Français",
             "english" => "Anglais",
             "deutsch" => "Allemand"
         );
+        /**vérifie si l'utilisateurs est en ligne */
         if(is_user_logged_in())
         {
             /**Permet d'obtenir la taxonomy qu'on a créé avant */
@@ -44,11 +47,27 @@ class wp_hydriade_shortcode{
                     );
 
                     /**Affichage des informations pour les parties */
+                    /**Loop des posts séléctionnés */
                     $loop = new WP_Query($args);
+                    /**Titre du du départ */
                     $html .= '<h2 class="caTitle">'.$term->name.'</h2><div class="row">';
                     if($loop->have_posts()) {
                         while($loop->have_posts()) : $loop->the_post();
-                            $html .= '<div class="column"><div class="card"><h3>'.get_the_title().'</h3><p><B>Univers de jeu : </B>'.get_post_meta(get_the_ID(),'wp_party_univers', true).'</p><p><B>Ambiance : </B>'.get_post_meta(get_the_ID(),'wp_party_ambiance', true).'</p><p><B>MJ : </B>'.get_post_meta(get_the_ID(),'wp_party_GM', true).'</p><p><B>Nombre de joueurs : </B>'.get_post_meta(get_the_ID(),'wp_party_players', true).'</p><p><B>Temps estimé : </B>'.get_post_meta(get_the_ID(),'wp_party_time', true).'h</p><p><B>Langue : </B>'.get_post_meta(get_the_ID(),'wp_party_language', true).'</p><div class="pitch"><button onclick="showOrHide('.get_the_ID().')">Pitch du scénario<div class="more">+</div></button><div id="'.get_the_ID().'" class="displayNone"><p>'.get_post_meta(get_the_ID(),'wp_party_pitch', true).'</p></div></div>';
+                        /**Informations des parties */
+                            $html .= '<div class="column">
+                            <div class="card">
+                            <h3>'.get_the_title().'</h3>
+                            <p><B>Univers de jeu : </B>'.get_post_meta(get_the_ID(),'wp_party_univers', true).'</p>
+                            <p><B>Ambiance : </B>'.get_post_meta(get_the_ID(),'wp_party_ambiance', true).'</p>
+                            <p><B>MJ : </B>'.get_post_meta(get_the_ID(),'wp_party_GM', true).'</p>
+                            <p><B>Nombre de joueurs : </B>'.get_post_meta(get_the_ID(),'wp_party_players', true).'</p>
+                            <p><B>Temps estimé : </B>'.get_post_meta(get_the_ID(),'wp_party_time', true).'h</p>
+                            <p><B>Langue : </B>'.get_post_meta(get_the_ID(),'wp_party_language', true).'</p>
+                            <div class="pitch"><button onclick="showOrHide('.get_the_ID().')">Pitch du scénario<div class="more">+</div></button>
+                            <div id="'.get_the_ID().'" class="displayNone"><p>'.get_post_meta(get_the_ID(),'wp_party_pitch', true).'</p>
+                            </div>
+                            </div>';
+                            /**Vérifie si l'utilisateurs a le rôle nécessaire de s'inscrire à une partie */
                             foreach(get_user_meta(get_current_user_id(), 'hydRole') as $value){
                                 if($value == 'GM' || $value == 'PL'){
                                     $html .= 
@@ -73,6 +92,7 @@ class wp_hydriade_shortcode{
                     /**Vérifie si l'utilisateur est un maître de jeu */
                     foreach(get_user_meta(get_current_user_id(), 'hydRole') as $value){
                         if($value == 'GM'){
+                            /**Affichage du formulaire pour créer une partie */
                             $html .= '<div class="column"><div class="card"><button onclick="showOrHide('.$term->term_id.')"><h3><b>+Ajouter une partie+</b></h3></button><div id="'.$term->term_id.'" class="displayNone">
                             <form enctype="multipart/form-data" action="" name="new_post" id="new_post" method="post">
                             Titre de la partie :<br>
@@ -119,6 +139,7 @@ class wp_hydriade_shortcode{
             /**Vérifie si l'utilisateur a déjà un rôle */
             if(get_user_meta(get_current_user_id(), 'hydRole') == false){
                 
+                /**Affichage pour s'inscrire en tant que joueurs ou MJ */
                 $html .= '<br>
                 <p>Si vous avez acheté un billet pour les hydriades, c\'est ici que vous devez entrez votre numéro de billet pour pouvoir proposer et participer à des parties</p>
                 <form enctype="multipart/form-data" action="" name="becomeGM" id="becomeGM" method="post">
@@ -154,15 +175,19 @@ class wp_hydriade_shortcode{
     }
     /**Permet d'ajouter une partie */
     public function partie_add(){
+        /**Vérifie si les données sont là */
         if(!empty($_POST['title']) && !empty($_POST['universe']) && !empty($_POST['ambiance']) && !empty($_POST['MJ']) && !empty($_POST['players']) && !empty($_POST['language']) && !empty($_POST['pitch']) && !empty($_POST['category'])  && !empty($_POST['time'])){
+            /**Créé le post et sauvegarde son ID */
             $post_id = wp_insert_post(array(
                 'post_title' => esc_attr(strip_tags($_POST['title'])),
 				'post_type' => 'wp_parties',
                 'post_status' => 'pending'
             ));
+            /** Associe le post à la category que le MJ a choisi*/
             $term = get_term(esc_attr(strip_tags($_POST['category'])) , 'types');
             wp_set_object_terms($post_id, $term->name, 'types');
 
+            /**Ajoute les données au post */
             update_post_meta($post_id, 'wp_party_GM', esc_attr(strip_tags($_POST['MJ'])));
             update_post_meta($post_id, 'wp_party_ambiance', esc_attr(strip_tags($_POST['ambiance'])));
             update_post_meta($post_id, 'wp_party_univers', esc_attr(strip_tags($_POST['universe'])));
@@ -174,6 +199,7 @@ class wp_hydriade_shortcode{
     }
     /**Permet l'ajout d'attente à l'utilisateurs voulant devenir MJ ou joueur */
     public function plOrGmAdd(){
+        /**Vérifie si les données sont la et créé une metadata qui indique que le client est en attente de confirmation de son rôle */
         if(!empty($_POST['billetGM']) && !empty($_POST['userID'])){
             if(get_userdata(esc_attr(strip_tags($_POST['userID'])))){
                 update_user_meta($_POST['userID'], 'hydRole', 'waitGM');
