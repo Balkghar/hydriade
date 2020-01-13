@@ -389,8 +389,8 @@ class wp_hydriade{
         flush_rewrite_rules();
     }
     public function enqueue_public_scripts_and_styles(){
-        wp_enqueue_style('wp_hydriades_public_styles', plugin_dir_url(__FILE__). '/css/wp_hydriades_public-css.css');
-        wp_enqueue_script( 'wp_hydriade_public_js.js', plugins_url( '/js/wp_hydriade_public_js.js', __FILE__ ), array('jquery') );
+        wp_enqueue_style('wp_hydriades_public_styles', plugin_dir_url(__FILE__).'CSS/wp_hydriades_public-css.css',array(), '1.0', 'all');
+        wp_enqueue_script( 'wp_hydriade_public_js.js', plugins_url( 'js/wp_hydriade_public_js.js', __FILE__ ), array('jquery') );
     
     }
     //trigered on deactivation of the plugin (called only once)

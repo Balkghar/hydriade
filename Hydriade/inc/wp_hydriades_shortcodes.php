@@ -28,6 +28,8 @@ class wp_hydriade_shortcode{
             $terms = get_terms(array(
                 'taxonomy' => 'types',
                 'hide_empty' => false,
+                'orderby' => 'ID',
+                'order'   => 'ASC',
             ));
             /**Vérifie si le tableau n'est pas vide */
             if(!empty($terms)){
@@ -42,6 +44,8 @@ class wp_hydriade_shortcode{
                                 'taxonomy' => 'types',
                                 'field' => 'slug',
                                 'terms' => $term->slug,
+                                'orderby' => 'date',
+                                'order'   => 'ASC',
                             ),
                         ),
                     );
