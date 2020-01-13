@@ -77,10 +77,10 @@ class wp_hydriade_shortcode{
                                     $html .= 
                                     '<br>
                                     <form enctype="multipart/form-data" action="" name="add_player" id="add_player" method="post">
-                                    Nom du joueur :<br>
+                                    Prénom :<br>
                                     <input type="text" name="name">
-                                    Mail du joueur :<br>
-                                    <input type="text" name="mail">
+                                    Nom :<br>
+                                    <input type="text" name="name">
                                     <input type="hidden" name="userID" value="'.get_current_user_id().'">
                                     <input type="hidden" name="postID" value="'.get_the_ID().'">
                                     <input type="submit" value="S\'inscrire à la partie">
