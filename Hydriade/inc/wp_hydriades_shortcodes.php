@@ -77,10 +77,6 @@ class wp_hydriade_shortcode{
                                     $html .= 
                                     '<br>
                                     <form enctype="multipart/form-data" action="" name="add_player" id="add_player" method="post">
-                                    Prénom :<br>
-                                    <input type="text" name="name">
-                                    Nom :<br>
-                                    <input type="text" name="name">
                                     <input type="hidden" name="userID" value="'.get_current_user_id().'">
                                     <input type="hidden" name="postID" value="'.get_the_ID().'">
                                     <input type="submit" value="S\'inscrire à la partie">
@@ -171,9 +167,16 @@ class wp_hydriade_shortcode{
     }
     /**Fonction permettant l'ajout d'un joueur à une partie */
     public function player_add_partie(){
-        if(!empty($_POST['name']) && !empty($_POST['userID']) && !empty($_POST['postID']) && !empty($_POST['mail'])){
-            if(get_userdata(esc_attr(strip_tags($_POST['userID'])))){
+        $current_user = get_currentuserinfo();
 
+        $email = $current_user->user_email;
+
+        $admin_email = get_option('admin_email');
+
+        if(!empty($_POST['userID']) && !empty($_POST['postID'])){
+            if(get_userdata(esc_attr(strip_tags($_POST['userID']))) &&  get_post(esc_attr(strip_tags($_POST['postID'])))){
+                update_user_meta($_POST['userID'], 'Party'.$_POST['postID'], 'registeredWait');
+                wp_mail($email, 'Inscription', 'VOtre inscription a été reçu','From: <'.$admin_email.'>' . "\r\n");
             }
         }
     }
