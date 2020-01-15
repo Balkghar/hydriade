@@ -243,7 +243,7 @@ class wp_hydriade{
             'publicly_queryable'=> true,
             'query_var'         => true,
             'hierarchical'      => false,
-            'supports'          => array('title'),
+            'supports'          => array('title', 'author'),
             'has_archive'       => false,
             'show_in_menu'      => 'hydriade',
             'menu_position'     => null,

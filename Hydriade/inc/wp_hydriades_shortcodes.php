@@ -94,7 +94,7 @@ class wp_hydriade_shortcode{
                                 }
                             }
                             $html .= '</p>
-                            <div class="pitch"><button onclick="showOrHide('.get_the_ID().')">Pitch du scénario<div class="more">+</div></button>
+                            <div class="pitch" id= "pitch'.get_the_ID().'"><button onclick="showOrHide('.get_the_ID().')">Pitch du scénario<div class="more">+</div></button>
                             <div id="'.get_the_ID().'" class="displayNone"><p>'.get_post_meta(get_the_ID(),'wp_party_pitch', true).'</p>';
                             $html .= '</div></div>';
                             /**Vérifie si l'utilisateurs a le rôle nécessaire de s'inscrire à une partie */
@@ -113,6 +113,16 @@ class wp_hydriade_shortcode{
                                                 </form>
                                                 ';
                                             }
+                                            else if($valu == "registeredWait"){
+                                                $html.=
+                                                '<br>
+                                                <form enctype="multipart/form-data" action="" name="cancel" id="cancel" method="post">
+                                                <input type="hidden" name="userIDCan" value="'.get_current_user_id().'">
+                                                <input type="hidden" name="postIDCan" value="'.get_the_ID().'">
+                                                <input type="submit" value="Annuler l\'inscription">
+                                                </form>
+                                                ';
+                                            }
                                         }
                                     }
                                     else{
@@ -126,7 +136,15 @@ class wp_hydriade_shortcode{
                                                 break;
                                                 }
                                             }
-                                            if($registered){
+                                            $write = true;
+                                            foreach($postIDs as $postID){
+                                                $author_id = get_post_field ('post_author', $postID);
+                                                if($author_id == get_current_user_id()){
+                                                    $write = false;
+                                                break;
+                                                }
+                                            }
+                                            if($registered && $write){
                                                 $html .= 
                                                 '<br>
                                                 <form enctype="multipart/form-data" action="" name="add_player" id="add_player" method="post">
@@ -154,41 +172,61 @@ class wp_hydriade_shortcode{
                     /**Vérifie si l'utilisateur est un maître de jeu */
                     foreach(get_user_meta(get_current_user_id(), 'hydRole') as $value){
                         if($value == 'GM'){
+                            $write = true;
+                            foreach($postIDs as $postID){
+                                $author_id = get_post_field ('post_author', $postID);
+                                if($author_id == get_current_user_id()){
+                                    $write = false;
+                                break;
+                                }
+                            }
+                            $registered = true;
+                                            
+                            foreach($postIDs as $postID){
+                                if(get_user_meta(get_current_user_id(), 'Party'.$postID)){
+                                    $registered = false;
+                                    break;
+                                }
+                            }
+                            if($write && $registered){
+                                $html .= '<div class="column"><div class="card"><button onclick="showOrHide('.$term->term_id.')"><h3><b>+Ajouter une partie+</b></h3></button><div id="'.$term->term_id.'" class="displayNone">
+                                <form enctype="multipart/form-data" action="" name="new_post" id="new_post" method="post">
+                                Titre de la partie :<br>
+                                <input type="text" name="title">
+                                Univers du jeu :<br>
+                                <input type="text" name="universe">
+                                Ambiance :<br>
+                                <input type="text" name="ambiance">
+                                Maître de jeu :<br>
+                                <input type="text" name="MJ">
+                                Nombre de joueurs :<br>
+                                <select name="players">';
+                                for($i = 1; $i <= 10; $i++){
+                                        $html .='<option value="'.$i.'">'.$i.'</option>';
+                                }
+                                $html .= '</select>
+                                Temps estimé :<br>
+                                <select name="time">';
+                                for($i = 1; $i <= 10; $i++){
+                                        $html .='<option value="'.$i.'">'.$i.'</option>';
+                                }
+                                $html .= '</select>
+                                Langue :<br>
+                                <select id="wp_party_language" name="language">';
+                                foreach ($Languages as $Langue){
+                                    $html .= '<option value="'.$Langue.'">'.$Langue.'</option>';
+                                }
+                                $html .=  '</select>';
+                                $html .= 'Pitch du scénario :<br>
+                                <textarea name="pitch"></textarea>
+                                <input name="category" type="hidden" value="'.$term->term_id.'">
+                                <input type="submit" value="Envoyer">
+                                </form>
+                                </div></div></div>';                             
+                            }
+
                             /**Affichage du formulaire pour créer une partie */
-                            $html .= '<div class="column"><div class="card"><button onclick="showOrHide('.$term->term_id.')"><h3><b>+Ajouter une partie+</b></h3></button><div id="'.$term->term_id.'" class="displayNone">
-                            <form enctype="multipart/form-data" action="" name="new_post" id="new_post" method="post">
-                            Titre de la partie :<br>
-                            <input type="text" name="title">
-                            Univers du jeu :<br>
-                            <input type="text" name="universe">
-                            Ambiance :<br>
-                            <input type="text" name="ambiance">
-                            Maître de jeu :<br>
-                            <input type="text" name="MJ">
-                            Nombre de joueurs :<br>
-                            <select name="players">';
-                            for($i = 1; $i <= 10; $i++){
-                                    $html .='<option value="'.$i.'">'.$i.'</option>';
-                            }
-                            $html .= '</select>
-                            Temps estimé :<br>
-                            <select name="time">';
-                            for($i = 1; $i <= 10; $i++){
-                                    $html .='<option value="'.$i.'">'.$i.'</option>';
-                            }
-                            $html .= '</select>
-                            Langue :<br>
-                            <select id="wp_party_language" name="language">';
-                            foreach ($Languages as $Langue){
-                                $html .= '<option value="'.$Langue.'">'.$Langue.'</option>';
-                            }
-                            $html .=  '</select>';
-                            $html .= 'Pitch du scénario :<br>
-                            <textarea name="pitch"></textarea>
-                            <input name="category" type="hidden" value="'.$term->term_id.'">
-                            <input type="submit" value="Envoyer">
-                            </form>
-                            </div></div></div>';
+                            
                         }
                         
                     }
@@ -238,6 +276,11 @@ class wp_hydriade_shortcode{
                 wp_mail($email, 'Inscription', 'Votre inscription a été reçu');
             }
         }
+        if(!empty($_POST['userIDCan']) && !empty($_POST['postIDCan'])){
+            if(get_userdata(esc_attr(strip_tags($_POST['userIDCan']))) &&  get_post(esc_attr(strip_tags($_POST['postIDCan'])))){
+                delete_user_meta($_POST['userIDCan'], 'Party'.$_POST['postIDCan'], 'registeredWait');
+            }
+        }    
     }
     /**Permet d'ajouter une partie */
     public function partie_add(){
