@@ -52,12 +52,26 @@ class wp_hydriade_shortcode{
 
                     /**Affichage des informations pour les parties */
                     /**Loop des posts séléctionnés */
+                    $postIDs = array();
                     $loop = new WP_Query($args);
+                    if($loop->have_posts()) {
+                        while($loop->have_posts()) : $loop->the_post();
+                        /**Informations des parties */
+                            array_push($postIDs,get_the_ID());
+                        endwhile;
+                    }
+
                     /**Titre du du départ */
                     $html .= '<h2 class="caTitle">'.$term->name.'</h2><div class="row">';
                     if($loop->have_posts()) {
                         while($loop->have_posts()) : $loop->the_post();
                         /**Informations des parties */
+                            $users = get_users(array('meta_key' => 'Party'.get_the_ID(), 'meta_value' => 'Registered'));
+
+                            $numItems = count($users);
+
+                            $i = 0;
+
                             $html .= '<div class="column">
                             <div class="card">
                             <h3>'.get_the_title().'</h3>
@@ -65,23 +79,71 @@ class wp_hydriade_shortcode{
                             <p><B>Ambiance : </B>'.get_post_meta(get_the_ID(),'wp_party_ambiance', true).'</p>
                             <p><B>MJ : </B>'.get_post_meta(get_the_ID(),'wp_party_GM', true).'</p>
                             <p><B>Nombre de joueurs : </B>'.get_post_meta(get_the_ID(),'wp_party_players', true).'</p>
+                            <p><B>Place restante : </B>'.(get_post_meta(get_the_ID(),'wp_party_players', true)-$numItems).'</p>
                             <p><B>Temps estimé : </B>'.get_post_meta(get_the_ID(),'wp_party_time', true).'h</p>
-                            <p><B>Langue : </B>'.get_post_meta(get_the_ID(),'wp_party_language', true).'</p>
+                            <p><B>Langue : </B>'.get_post_meta(get_the_ID(),'wp_party_language', true).'</p>';
+                            $html .= '<p><b>Joueu·r·se·s inscrit·e·s : </b>';
+                            
+                            foreach($users as $user){
+
+                                if(++$i === $numItems) {
+                                    $html .= $user->display_name;
+                                }
+                                else{
+                                    $html .= $user->display_name.', ';
+                                }
+                            }
+                            $html .= '</p>
                             <div class="pitch"><button onclick="showOrHide('.get_the_ID().')">Pitch du scénario<div class="more">+</div></button>
-                            <div id="'.get_the_ID().'" class="displayNone"><p>'.get_post_meta(get_the_ID(),'wp_party_pitch', true).'</p>
-                            </div>
-                            </div>';
+                            <div id="'.get_the_ID().'" class="displayNone"><p>'.get_post_meta(get_the_ID(),'wp_party_pitch', true).'</p>';
+                            $html .= '</div></div>';
                             /**Vérifie si l'utilisateurs a le rôle nécessaire de s'inscrire à une partie */
                             foreach(get_user_meta(get_current_user_id(), 'hydRole') as $value){
                                 if($value == 'GM' || $value == 'PL'){
-                                    $html .= 
-                                    '<br>
-                                    <form enctype="multipart/form-data" action="" name="add_player" id="add_player" method="post">
-                                    <input type="hidden" name="userID" value="'.get_current_user_id().'">
-                                    <input type="hidden" name="postID" value="'.get_the_ID().'">
-                                    <input type="submit" value="S\'inscrire à la partie">
-                                    </form>
-                                    ';
+                                    $answer = get_user_meta(get_current_user_id(),'Party'.get_the_ID());
+                                    if($answer){
+                                        foreach($answer as $valu){
+                                            if($valu == "Registered"){
+                                                $html .= 
+                                                '<br>
+                                                <form enctype="multipart/form-data" action="" name="desin" id="desin" method="post">
+                                                <input type="hidden" name="userIDDes" value="'.get_current_user_id().'">
+                                                <input type="hidden" name="postIDDes" value="'.get_the_ID().'">
+                                                <input type="submit" value="Se désinscrire de la partie">
+                                                </form>
+                                                ';
+                                            }
+                                        }
+                                    }
+                                    else{
+                                        if((get_post_meta(get_the_ID(),'wp_party_players', true)-$numItems) >= 1){
+                                            
+                                            $registered = true;
+                                            
+                                            foreach($postIDs as $postID){
+                                                if(get_user_meta(get_current_user_id(), 'Party'.$postID)){
+                                                    $registered = false;
+                                                break;
+                                                }
+                                            }
+                                            if($registered){
+                                                $html .= 
+                                                '<br>
+                                                <form enctype="multipart/form-data" action="" name="add_player" id="add_player" method="post">
+                                                <input type="hidden" name="userID" value="'.get_current_user_id().'">
+                                                <input type="hidden" name="postID" value="'.get_the_ID().'">
+                                                <input type="submit" value="S\'inscrire à la partie">
+                                                </form>
+                                                ';
+                                            }
+                                            
+                                        }
+                                        else{
+
+                                        }
+
+                                    }
+                                    
                                 }
                             }
                             $html .= '</div></div>';
@@ -138,7 +200,6 @@ class wp_hydriade_shortcode{
             }
             /**Vérifie si l'utilisateur a déjà un rôle */
             if(get_user_meta(get_current_user_id(), 'hydRole') == false){
-                
                 /**Affichage pour s'inscrire en tant que joueurs ou MJ */
                 $html .= '<br>
                 <p>Si vous avez acheté un billet pour les hydriades, c\'est ici que vous devez entrez votre numéro de billet pour pouvoir proposer et participer à des parties</p>
@@ -154,8 +215,6 @@ class wp_hydriade_shortcode{
                 <input name="userID" type="hidden" value="'.get_current_user_id().'">
                 <input type="submit" value="Je veux devenir un joueur !">
                 </form>';
-                
-                
             }
             
             wp_reset_postdata();
@@ -176,7 +235,7 @@ class wp_hydriade_shortcode{
         if(!empty($_POST['userID']) && !empty($_POST['postID'])){
             if(get_userdata(esc_attr(strip_tags($_POST['userID']))) &&  get_post(esc_attr(strip_tags($_POST['postID'])))){
                 update_user_meta($_POST['userID'], 'Party'.$_POST['postID'], 'registeredWait');
-                wp_mail($email, 'Inscription', 'VOtre inscription a été reçu','From: <'.$admin_email.'>' . "\r\n");
+                wp_mail($email, 'Inscription', 'Votre inscription a été reçu');
             }
         }
     }
@@ -223,6 +282,12 @@ class wp_hydriade_shortcode{
             }
             else{
 
+            }
+        }
+        if(!empty($_POST['userIDDes']) && !empty($_POST['postIDDes'])){
+            if(get_userdata(esc_attr(strip_tags($_POST['userIDDes']))) && get_post(esc_attr(strip_tags($_POST['postIDDes'])))){
+                delete_user_meta($_POST['userIDDes'], 'Party'.$_POST['postIDDes'], 'Registered');
+                
             }
         }
     }

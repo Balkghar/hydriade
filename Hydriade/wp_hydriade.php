@@ -17,6 +17,7 @@ class wp_hydriade{
         add_action('admin_menu', array($this,'custom_menu'));
         add_action('init', array($this, 'register_parties'));
         add_action('init', array($this,'addGMOrPLW'));
+        add_action('init', array($this,'gestInscr'));
         add_action('add_meta_boxes', array($this,'add_party_meta_boxes')); //add meta boxes
         add_filter('the_content', array($this,'prepend_party_meta_to_content')); //gets our meta data and dispayed it before the content
         add_action('save_post_wp_parties', array($this,'save_party')); //save party
@@ -39,7 +40,7 @@ class wp_hydriade{
         );
         /**Différents submenu pour le menu des hydriades */
         add_submenu_page('hydriade', 'Gestion des rôles', 'Gestion des rôles', 'edit_posts', 'admin_HydRole',array($this,'gestRole'));
-        add_submenu_page('hydriade', 'Gestion des inscriptions aux parties', 'Gestion des inscriptions aux parties', 'edit_posts', 'admin_HydPartie',array($this,'gestPlayer'));
+        add_submenu_page('hydriade', 'Gestion des inscriptions', 'Gestion des inscriptions', 'edit_posts', 'admin_HydPartie',array($this,'gestPlayer'));
 
     }
     /**Page d'accueil de l'extension */
@@ -49,6 +50,111 @@ class wp_hydriade{
     /**Page d'inscription des parties de la part des joueurs */
     function gestPlayer(){
         echo "<h1>Gestion des inscriptions aux parties</h1>";
+
+
+        $terms = get_terms(array(
+            'taxonomy' => 'types',
+            'hide_empty' => true,
+            'orderby' => 'ID',
+            'order'   => 'ASC',
+        ));
+        /**Vérifie si le tableau n'est pas vide */
+        if(!empty($terms)){
+                /**Boucle pour afficher les éléments du tableau */
+                echo '<h2>Inscription en attente</h2>';
+                foreach($terms as $term){
+                    /**Reset du query */
+                    wp_reset_query();
+                    /**Argument pour chercher les parties selon la taxonomy */
+                    $args = array('post_type' => 'wp_parties',
+                        'tax_query' => array(
+                            array(
+                                'taxonomy' => 'types',
+                                'field' => 'slug',
+                                'terms' => $term->slug,
+                                'orderby' => 'date',
+                                'order'   => 'ASC',
+                            ),
+                        ),
+                    );
+
+                    $loop = new WP_Query($args);
+                    /**Titre du du départ */
+                    echo '<h3>'.$term->name.'</h3>';
+                    if($loop->have_posts()) {
+                        while($loop->have_posts()) : $loop->the_post();
+                        $users = get_users(array('meta_key' => 'Party'.get_the_ID(), 'meta_value' => 'registeredWait'));
+                        if(!empty($users))
+                        echo '<h4>'.get_the_title().'</h4>';
+                        foreach($users as $user){
+                            echo '<table><tr><th>Nom ou pseudo</th><th>Accepter</th><th>Refuser</th></tr>';
+                            echo '<tr><td>'. $user->display_name.'</td><td><form enctype="multipart/form-data" action="" name="Accept" id="Accept" method="post"><input type="hidden" name="userIDInscr" value="'.$user->ID.'"><input type="hidden" name="postIDInscr" value="'.get_the_ID().'"><input type="submit" value="Accepter l\'inscription"></form></td><td><form enctype="multipart/form-data" action="" name="Refus" id="Refus" method="post"><input type="hidden" name="userIDRefu" value="'.$user->ID.'"><input type="hidden" name="postIDRefu" value="'.get_the_ID().'"><input type="submit" value="Refuser l\'inscription"></form></td></tr>';
+                            echo '</table>';
+                        }
+                        endwhile;
+                        
+                    }
+                    
+                    /**Fin de la boucle */
+                }
+                echo '<h2>Inscription acceptée</h2>';
+
+                foreach($terms as $term){
+                    /**Reset du query */
+                    wp_reset_query();
+                    /**Argument pour chercher les parties selon la taxonomy */
+                    $args = array('post_type' => 'wp_parties',
+                        'tax_query' => array(
+                            array(
+                                'taxonomy' => 'types',
+                                'field' => 'slug',
+                                'terms' => $term->slug,
+                                'orderby' => 'date',
+                                'order'   => 'ASC',
+                            ),
+                        ),
+                    );
+
+                    $loop = new WP_Query($args);
+                    /**Titre du du départ */
+                    echo '<h3>'.$term->name.'</h3>';
+                    if($loop->have_posts()) {
+                        while($loop->have_posts()) : $loop->the_post();
+                        $users = get_users(array('meta_key' => 'Party'.get_the_ID(), 'meta_value' => 'Registered'));
+                        if(!empty($users))
+                        echo '<B><h4>'.get_the_title().'</h4></B>';
+                        foreach($users as $user){
+                            echo '<table><tr><th>Nom ou pseudo</th><th>Désinscrire</th></tr>';
+                            echo '<tr><td>'. $user->display_name.'</td><td><form enctype="multipart/form-data" action="" name="De" id="De" method="post"><input type="hidden" name="userIDDe" value="'.$user->ID.'"><input type="hidden" name="postIDDe" value="'.get_the_ID().'"><input type="submit" value="Désinscrire"></form></td></tr>';
+                            echo '</table>';
+                        }
+                        endwhile;
+                        
+                    }
+                    
+                    /**Fin de la boucle */
+                }
+
+
+        }
+    }
+    /**Fonction pour gérer les inscriptons aux parties */
+    function gestInscr(){
+        if(!empty($_POST['userIDInscr']) && !empty($_POST['postIDInscr'])){
+            if(get_userdata(esc_attr(strip_tags($_POST['userIDInscr']))) && get_post(esc_attr(strip_tags($_POST['postIDInscr'])))){
+                update_user_meta($_POST['userIDInscr'], 'Party'.$_POST['postIDInscr'], 'Registered');
+            }
+        }
+        if(!empty($_POST['userIDRefu']) && !empty($_POST['postIDRefu'])){
+            if(get_userdata(esc_attr(strip_tags($_POST['userIDRefu']))) && get_post(esc_attr(strip_tags($_POST['postIDRefu'])))){
+                delete_user_meta($_POST['userIDRefu'], 'Party'.$_POST['postIDRefu'], 'registeredWait');
+            }
+        }
+        if(!empty($_POST['userIDDe']) && !empty($_POST['postIDDe'])){
+            if(get_userdata(esc_attr(strip_tags($_POST['userIDDe']))) && get_post(esc_attr(strip_tags($_POST['postIDDe'])))){
+                delete_user_meta($_POST['userIDDe'], 'Party'.$_POST['postIDDe'], 'Registered');
+            }
+        }
     }
     /**Page de gestion des différents rôles pour les hydriades */
     function gestRole(){
