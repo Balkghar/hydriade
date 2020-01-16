@@ -74,19 +74,35 @@
     margin-left: 3px;
     transition: background-color 2s;
   }
-  .pitch button {
+  .buPitch {
     text-transform: uppercase;
     font-weight: bold;
+    text-align: left;
     color: #665555;
+    width: 100%;
   }
-  .more{
-    background-color: #DCDCDC;
-    color: white;
-    width: 15px;
-    height: 15px;
-    border-radius: 50%;
-    display: inline-block;
-    line-height: normal;
+  .buPitch:after{
+    content: '\002B';
+    color: #777;
+    font-size: 16px;
+    font-weight: lighter;
+    float: right;
+    margin-left: 5px;
+  }
+  .buPitch2 {
+    text-transform: uppercase;
+    font-weight: bold;
+    text-align: left;
+    color: #665555;
+    width: 100%;
+  }
+  .buPitch2:after{
+    content: '\2212';
+    color:#777;
+    font-size: 16px;
+    font-weight: lighter;
+    float: right;
+    margin-left: 5px;
   }
   .pitch p {
     margin-left: 10px;
@@ -94,24 +110,23 @@
   .displayNone {
     animation: fadeOut 1s;
     display: none;
-    height: 0%;
-
   }
   .displayBlock{
     display: block;
     height: 100%;
     animation: fadeIn 1s;
   }
+  .block{
+    display: flex;
+    align-items: right;
+  }
   @keyframes fadeIn{
     0% {
       opacity: 0;
-      height: 0%;
-
       transform: scaleY(0);
       transform-origin: top;
     }
     100% {
-      height: 100%;
       opacity: 1;
       transform: scaleY(1);
       transform-origin: top;
@@ -120,13 +135,11 @@
   @keyframes fadeOut{
     0% {
       opacity: 1;
-      height: 100%;
       transform: scaleY(1);
       transform-origin: top;
     }
     100% {
         opacity: 0;
-        height: 0%;
         transform: scaleY(0);
         transform-origin: top;
     }

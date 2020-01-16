@@ -94,9 +94,14 @@ class wp_hydriade_shortcode{
                                 }
                             }
                             $html .= '</p>
-                            <div class="pitch" id= "pitch'.get_the_ID().'"><button onclick="showOrHide('.get_the_ID().')">Pitch du scénario<div class="more">+</div></button>
-                            <div id="'.get_the_ID().'" class="displayNone"><p>'.get_post_meta(get_the_ID(),'wp_party_pitch', true).'</p>';
-                            $html .= '</div></div>';
+                            <div class="pitch" id= "pitch'.get_the_ID().'">
+                                <div class="block" onclick="showOrHide('.get_the_ID().')">
+                                    <button class="buPitch" id="buPitch'.get_the_ID().'">Pitch du scénario</button>
+                                </div>
+                                <div id="'.get_the_ID().'" class="displayNone"><p>'.get_post_meta(get_the_ID(),'wp_party_pitch', true).'</p>';
+                            $html .= 
+                                '</div>
+                            </div>';
                             /**Vérifie si l'utilisateurs a le rôle nécessaire de s'inscrire à une partie */
                             foreach(get_user_meta(get_current_user_id(), 'hydRole') as $value){
                                 if($value == 'GM' || $value == 'PL'){
