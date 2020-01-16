@@ -278,14 +278,21 @@ class wp_hydriade_shortcode{
         if(!empty($_POST['userID']) && !empty($_POST['postID'])){
             if(get_userdata(esc_attr(strip_tags($_POST['userID']))) &&  get_post(esc_attr(strip_tags($_POST['postID'])))){
                 update_user_meta($_POST['userID'], 'Party'.$_POST['postID'], 'registeredWait');
-                wp_mail($email, 'Inscription', 'Votre inscription a été reçu');
+                wp_mail($email, 'Inscription à '.get_the_title($_POST['postID']), 'Votre inscription à la partie "'.get_the_title($_POST['postID']).'" a bien étée reçu.');
             }
         }
         if(!empty($_POST['userIDCan']) && !empty($_POST['postIDCan'])){
             if(get_userdata(esc_attr(strip_tags($_POST['userIDCan']))) &&  get_post(esc_attr(strip_tags($_POST['postIDCan'])))){
                 delete_user_meta($_POST['userIDCan'], 'Party'.$_POST['postIDCan'], 'registeredWait');
+                wp_mail($email, 'Annulation  d\'inscription à '.get_the_title($_POST['postIDCan']), 'Votre annulation d\'inscription à la partie "'.get_the_title($_POST['postIDCan']).'" a bien étée reçu.');
             }
         }    
+        if(!empty($_POST['userIDDes']) && !empty($_POST['postIDDes'])){
+            if(get_userdata(esc_attr(strip_tags($_POST['userIDDes']))) && get_post(esc_attr(strip_tags($_POST['postIDDes'])))){
+                delete_user_meta($_POST['userIDDes'], 'Party'.$_POST['postIDDes'], 'Registered');
+                wp_mail($email, 'Désincription à '.get_the_title($_POST['postIDDes']), 'Votre Désincription à la partie "'.get_the_title($_POST['postIDDes']).'" a bien étée reçu.');
+            }
+        }
     }
     /**Permet d'ajouter une partie */
     public function partie_add(){
@@ -332,12 +339,7 @@ class wp_hydriade_shortcode{
 
             }
         }
-        if(!empty($_POST['userIDDes']) && !empty($_POST['postIDDes'])){
-            if(get_userdata(esc_attr(strip_tags($_POST['userIDDes']))) && get_post(esc_attr(strip_tags($_POST['postIDDes'])))){
-                delete_user_meta($_POST['userIDDes'], 'Party'.$_POST['postIDDes'], 'Registered');
-                
-            }
-        }
+        
     }
 }
 $wp_hydriade_shortcode = new wp_hydriade_shortcode;

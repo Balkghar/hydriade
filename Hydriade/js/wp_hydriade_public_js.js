@@ -5,8 +5,10 @@ function showOrHide(value) {
   var v = document.getElementById('buPitch'.concat(value));
   
   if (x.classList.contains('displayNone')) {
+    x.style.maxHeight = x.scrollHeight+'px';
     x.className  = "displayBlock";
   } else {
+    x.style.maxHeight = '0px';
     x.className  = "displayNone";
   }
   if (y.style.backgroundColor === "rgb(255, 255, 255)") {
@@ -19,11 +21,4 @@ function showOrHide(value) {
   } else {
     v.className  = "buPitch2";
   }
-  /*
-  if(v.innerHTML.localeCompare('✛') == 0){
-    v.innerHTML = '⎯';
-  }
-  else{
-    v.innerHTML = '✛';
-  }*/
 }

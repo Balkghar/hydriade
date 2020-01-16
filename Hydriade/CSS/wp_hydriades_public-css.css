@@ -12,7 +12,9 @@
   }
   
   /* Remove extra left and right margins, due to padding */
-  .row {margin: 0 -5px;}
+  .row {
+    margin: 0 -5px;
+  }
   
   /* Clear floats after the columns */
   .row:after {
@@ -22,15 +24,17 @@
   }
   
   /* Responsive columns */
-  @media screen and (max-width: 600px) {
+  @media screen and (max-width: 1110px) and (min-width: 1006px) {
     .column {
-      width: 100%;
+      padding-left: 10%;
+      width: 50%;
       display: block;
     }
   }
-  @media screen and (max-width: 800px) and (min-width: 601px){
+  @media screen and (max-width: 1005px) {
     .column {
-      width: 50%;
+      padding-left: 10%;
+      width: 100%;
       display: block;
     }
   }
@@ -72,7 +76,7 @@
     border-color: #DCDCDC;
     padding: 10px;
     margin-left: 3px;
-    transition: background-color 2s;
+    transition: background-color 1.25s;
   }
   .buPitch {
     text-transform: uppercase;
@@ -108,40 +112,19 @@
     margin-left: 10px;
   }
   .displayNone {
-    animation: fadeOut 1s;
-    display: none;
+    max-height: 0px;
+    overflow: hidden;
+    -webkit-transition: max-height 1s;
+    -moz-transition: max-height 1s;
+    transition: max-height 1s;
   }
-  .displayBlock{
-    display: block;
-    height: 100%;
-    animation: fadeIn 1s;
+  .displayBlock{    
+    -webkit-transition: max-height 1s;
+    -moz-transition: max-height 1s;
+    transition: max-height 1s;
+    overflow: hidden;
   }
   .block{
     display: flex;
     align-items: right;
   }
-  @keyframes fadeIn{
-    0% {
-      opacity: 0;
-      transform: scaleY(0);
-      transform-origin: top;
-    }
-    100% {
-      opacity: 1;
-      transform: scaleY(1);
-      transform-origin: top;
-    }
-  }
-  @keyframes fadeOut{
-    0% {
-      opacity: 1;
-      transform: scaleY(1);
-      transform-origin: top;
-    }
-    100% {
-        opacity: 0;
-        transform: scaleY(0);
-        transform-origin: top;
-    }
-  }
-
