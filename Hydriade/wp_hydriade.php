@@ -18,6 +18,8 @@ class wp_hydriade{
         add_action('init', array($this, 'register_parties'));
         add_action('init', array($this,'addGMOrPLW'));
         add_action('init', array($this,'gestInscr'));
+        add_action( 'admin_init', array($this,'hydriade_register_settings') );
+        add_action('admin_menu', array($this,'hydriade_register_options_page'));
         add_action('add_meta_boxes', array($this,'add_party_meta_boxes')); //add meta boxes
         add_filter('the_content', array($this,'prepend_party_meta_to_content')); //gets our meta data and dispayed it before the content
         add_action('save_post_wp_parties', array($this,'save_party')); //save party
@@ -140,19 +142,51 @@ class wp_hydriade{
     }
     /**Fonction pour gérer les inscriptons aux parties */
     function gestInscr(){
+        $urlSite = get_option('NameMail');
+        $headers .= "Return-Path: Hydriade <".$urlSite.">\r\n";
+        $headers .= "Reply-To: Hydriade <".$urlSite.">\r\n";
+        $headers .= "L'association de l'hydre\r\n";
+        $headers .= "From: Hydriade <".$urlSite.">\r\n"; 
+        $headers .= "MIME-Version: 1.0\r\n";
+        $headers .= "Content-type: text/plain; charset=utf-8\r\n";
+        $headers .= "X-Priority: 3\r\n";
+        $headers .= "X-Mailer: PHP". phpversion() ."\r\n";
+
         if(!empty($_POST['userIDInscr']) && !empty($_POST['postIDInscr'])){
             if(get_userdata(esc_attr(strip_tags($_POST['userIDInscr']))) && get_post(esc_attr(strip_tags($_POST['postIDInscr'])))){
+
+                $current_user = get_user_by('ID',$_POST['userIDInscr']);
+
+                $email = $current_user->user_email;
+
                 update_user_meta($_POST['userIDInscr'], 'Party'.$_POST['postIDInscr'], 'Registered');
+                
+                wp_mail($email, 'Inscription pour la partie '.get_the_title($_POST['postIDInscr']), 'Votre inscription pour la partie '.get_the_title($_POST['postIDInscr']).' a été acceptée.', $headers);
+
             }
         }
         if(!empty($_POST['userIDRefu']) && !empty($_POST['postIDRefu'])){
             if(get_userdata(esc_attr(strip_tags($_POST['userIDRefu']))) && get_post(esc_attr(strip_tags($_POST['postIDRefu'])))){
+
+                $current_user = get_user_by('ID',$_POST['userIDRefu']);
+                $email = $current_user->user_email;
+
                 delete_user_meta($_POST['userIDRefu'], 'Party'.$_POST['postIDRefu'], 'registeredWait');
+
+                wp_mail($email, 'Inscription pour la partie '.get_the_title($_POST['postIDRefu']), 'Votre inscription pour la partie '.get_the_title($_POST['postIDRefu']).' a été refusée.', $headers);
+
             }
         }
         if(!empty($_POST['userIDDe']) && !empty($_POST['postIDDe'])){
             if(get_userdata(esc_attr(strip_tags($_POST['userIDDe']))) && get_post(esc_attr(strip_tags($_POST['postIDDe'])))){
+                
+                $current_user = get_user_by('ID',$_POST['userIDDe']);
+                $email = $current_user->user_email;
+                
                 delete_user_meta($_POST['userIDDe'], 'Party'.$_POST['postIDDe'], 'Registered');
+
+                wp_mail($email, 'Désinscription pour la partie '.get_the_title($_POST['postIDDe']), 'Vous avez été désincrit de la partie '.get_the_title($_POST['postIDDe']), $headers);
+
             }
         }
     }
@@ -197,14 +231,38 @@ class wp_hydriade{
     }
     /**Permet d'ajouter les utilisateurs voulant devenir MJ ou joueur et ayant été validé par un admin ou de les supprimer*/
     public function addGMOrPLW(){
+        $urlSite = get_option('NameMail');
+        $headers .= "Return-Path: Hydriade <".$urlSite.">\r\n";
+        $headers .= "Reply-To: Hydriade <".$urlSite.">\r\n";
+        $headers .= "L'association de l'hydre\r\n";
+        $headers .= "From: Hydriade <".$urlSite.">\r\n"; 
+        $headers .= "MIME-Version: 1.0\r\n";
+        $headers .= "Content-type: text/plain; charset=utf-8\r\n";
+        $headers .= "X-Priority: 3\r\n";
+        $headers .= "X-Mailer: PHP". phpversion() ."\r\n";
+
         if(!empty($_POST['userIDGM'])){
             if(get_userdata(esc_attr(strip_tags($_POST['userIDGM'])))){
+
+                $current_user = get_user_by('ID', $_POST['userIDGM']);
+
+                $email = $current_user->user_email;
+
                 update_user_meta($_POST['userIDGM'], 'hydRole', 'GM');
+                wp_mail($email, 'Confirmation d\'inscription pour les hydriades', 'Votre inscription pour les hydriades en tant que MJ a été acceptée.', $headers);
             }
         }
         if(!empty($_POST['userIDPL'])){
             if(get_userdata(esc_attr(strip_tags($_POST['userIDPL'])))){
+                
+                $current_user = get_user_by('ID',$_POST['userIDPL']);
+
+                $email = $current_user->user_email;
+
                 update_user_meta($_POST['userIDPL'], 'hydRole', 'PL');
+
+                wp_mail($email, 'Confirmation d\'inscription pour les hydriades', 'Votre inscription pour les hydriades en tant que joueu­·r·se a été acceptée.', $headers);
+
             }
         }
         if(!empty($_POST['userIDGMD'])){
@@ -326,7 +384,7 @@ class wp_hydriade{
         echo '<div class="field">
         <label for="wp_party_time">Le temps de votre partie</label>
         <select id="wp_party_time" name="wp_party_time">';
-        for($i = 1; $i <= 10; $i++){
+        for($i = 1; $i <= 30; $i++){
             if($wp_party_time == $i){
                 echo'<option value="'.$i.'" selected>'.$i.'</option>';
             }
@@ -488,6 +546,34 @@ class wp_hydriade{
         ));
         add_submenu_page('hydriade', 'Ajouter un départ', 'Ajouter un départ', 'edit_posts', 'edit-tags.php?taxonomy=types',false);
     }
+    function hydriade_register_settings() {
+        add_option( 'NameMail', 'hydriade@hydre.ch');
+        register_setting( 'HydriadeOption', 'NameMail');
+    }
+    function hydriade_register_options_page() {
+        add_options_page('Hydriade option', 'Hydriade', 'manage_options', 'hydriade_options', array($this,'hydriade_options_page'));
+    }
+    function hydriade_options_page(){
+        
+        ?>
+        <div>
+        <?php screen_icon(); ?>
+        <h2>Option hydriade</h2>
+        <form method="post" action="options.php">
+        <?php settings_fields( 'HydriadeOption' ); ?>
+        <h3>Page d'option pour les hydriades</h3>
+        <table>
+        <tr valign="top">
+        <th scope="row"><label for="NameMail">Mail automatique pour les hydriades</label></th>
+        <td><input type="text" id="NameMail" name="NameMail" value="<?php echo get_option('NameMail'); ?>" /></td>
+        </tr>
+        </table>
+        <?php  submit_button(); ?>
+        </form>
+        </div>
+        <?php
+        
+    }
     public function plugin_activate(){  
         //call our custom content type function
         $this->register_parties();
@@ -497,7 +583,7 @@ class wp_hydriade{
     public function enqueue_public_scripts_and_styles(){
         wp_enqueue_style('wp_hydriades_public_styles', plugin_dir_url(__FILE__).'CSS/wp_hydriades_public-css.css',array(), '1.0', 'all');
         wp_enqueue_script( 'wp_hydriade_public_js.js', plugins_url( 'js/wp_hydriade_public_js.js', __FILE__ ), array('jquery') );
-    
+        wp_enqueue_script('jquery', 'https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js', array(), null, true);
     }
     //trigered on deactivation of the plugin (called only once)
     public function plugin_deactivate(){
