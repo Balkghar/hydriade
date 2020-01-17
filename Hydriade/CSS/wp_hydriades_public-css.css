@@ -46,6 +46,7 @@
     margin-bottom: 20px;
     font-family: Raleway;
     line-height: 1;
+    height: auto;
   }
   .card h3 {
     color: #009900;

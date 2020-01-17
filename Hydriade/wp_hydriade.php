@@ -582,7 +582,8 @@ class wp_hydriade{
     }
     public function enqueue_public_scripts_and_styles(){
         wp_enqueue_style('wp_hydriades_public_styles', plugin_dir_url(__FILE__).'CSS/wp_hydriades_public-css.css',array(), '1.0', 'all');
-        wp_enqueue_script( 'wp_hydriade_public_js.js', plugins_url( 'js/wp_hydriade_public_js.js', __FILE__ ), array('jquery') );
+        wp_enqueue_script( 'wp_hydriade_public_js', plugins_url( 'js/wp_hydriade_public_js.js', __FILE__ ), array('jquery') );
+        wp_localize_script( 'wp_hydriade_public_js', 'frontend_ajax_object',array( 'ajax_url' => admin_url( 'admin-ajax.php' ) ) );
         wp_enqueue_script('jquery', 'https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js', array(), null, true);
     }
     //trigered on deactivation of the plugin (called only once)

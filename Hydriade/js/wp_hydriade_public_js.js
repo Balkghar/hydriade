@@ -4,10 +4,26 @@ function showOrHide(value) {
   var y = document.getElementById('pitch'.concat(value));
   var v = document.getElementById('buPitch'.concat(value));
   
+  x.addEventListener('transitionend', ()=>{
+    if(x.style.maxHeight === 'none'){
+      x.style.maxHeight = x.scrollHeight+'px';
+      save = x.style.maxHeight;
+    }
+    else if(x.style.maxHeight != 0){
+      x.style.maxHeight = 'none';
+      save = x.style.maxHeight;
+    }
+  });
+  x.addEventListener('transitionstart', ()=>{
+    if(x.style.maxHeight === 'none'){
+      x.style.maxHeight = save+'px';
+    }
+  });
   if (x.classList.contains('displayNone')) {
     x.style.maxHeight = x.scrollHeight+'px';
     x.className  = "displayBlock";
   } else {
+    x.style.maxHeight = x.scrollHeight+'px';
     x.style.maxHeight = '0px';
     x.className  = "displayNone";
   }
