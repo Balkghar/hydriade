@@ -496,8 +496,7 @@ class wp_hydriade{
         if(defined('DOING_AUTOSAVE') && DOING_AUTOSAVE){
             return $post_id;
         }
-
-        //get our phone, email and address fields
+        
         $wp_party_GM = isset($_POST['wp_party_GM']) ? sanitize_text_field($_POST['wp_party_GM']) : '';
         $wp_party_ambiance = isset($_POST['wp_party_ambiance']) ? sanitize_text_field($_POST['wp_party_ambiance']) : '';
         $wp_party_univers = isset($_POST['wp_party_univers']) ? sanitize_text_field($_POST['wp_party_univers']) : '';
@@ -521,7 +520,7 @@ class wp_hydriade{
         do_action('wp_party_admin_save',$post_id, $_POST);
 
     }
-    /*Category custom pour les parties de jeu de rôle, cela permettra de les triers plus facilement plus atrd*/
+    /*Category custom pour les parties de jeu de rôle, cela permettra de les triers plus facilement plus tard*/
     function add_custom_taxonomy() {
  
         $labels = array(
@@ -546,13 +545,25 @@ class wp_hydriade{
         ));
         add_submenu_page('hydriade', 'Ajouter un départ', 'Ajouter un départ', 'edit_posts', 'edit-tags.php?taxonomy=types',false);
     }
+    /**
+     * Fonction d'enregistrement des paramètres pour l'extension des hydriades
+     * 
+     */
     function hydriade_register_settings() {
         add_option( 'NameMail', 'hydriade@hydre.ch');
         register_setting( 'HydriadeOption', 'NameMail');
     }
+    /**
+     * Ajout de la page pour la modification des options pour les hydriades
+     * 
+     */
     function hydriade_register_options_page() {
         add_options_page('Hydriade option', 'Hydriade', 'manage_options', 'hydriade_options', array($this,'hydriade_options_page'));
     }
+    /**
+     * Fonction d'affichage de la page des paramètres pour l'extension des hydriades
+     * 
+     */
     function hydriade_options_page(){
         
         ?>

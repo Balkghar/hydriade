@@ -1,29 +1,26 @@
+/**
+ * Fonction permettant de faire la transition entre none to block et inversements
+ * @param {Id du champ à changer la classe} value 
+ */
 function showOrHide(value) {
   
   var x = document.getElementById(value);
   var y = document.getElementById('pitch'.concat(value));
   var v = document.getElementById('buPitch'.concat(value));
   
-  x.addEventListener('transitionend', ()=>{
-    if(x.style.maxHeight === 'none'){
+  setInterval(function(){ 
+    if (x.classList.contains('displayBlock') && x.maxHeight != x.scrollHeight+'px') {
+      x.style.transitionDuration = '0.5s';
       x.style.maxHeight = x.scrollHeight+'px';
-      save = x.style.maxHeight;
+    }else{
+      x.style.transitionDuration = '1s';
     }
-    else if(x.style.maxHeight != 0){
-      x.style.maxHeight = 'none';
-      save = x.style.maxHeight;
-    }
-  });
-  x.addEventListener('transitionstart', ()=>{
-    if(x.style.maxHeight === 'none'){
-      x.style.maxHeight = save+'px';
-    }
-  });
+  }, 500);
+
   if (x.classList.contains('displayNone')) {
     x.style.maxHeight = x.scrollHeight+'px';
     x.className  = "displayBlock";
   } else {
-    x.style.maxHeight = x.scrollHeight+'px';
     x.style.maxHeight = '0px';
     x.className  = "displayNone";
   }
@@ -38,3 +35,13 @@ function showOrHide(value) {
     v.className  = "buPitch2";
   }
 }
+jQuery(document).ready(function() {
+  jQuery(".language").change(function() {
+    var language = new Array();
+    var C = jQuery('.languageForm').serializeArray();
+    jQuery.each(C, function(i, field) { 
+      language.push(field.value);
+      
+    });
+  });
+});

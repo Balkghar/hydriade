@@ -15,6 +15,26 @@ class wp_hydriade_shortcode{
      * 
      */
     public function show_parties(){
+
+        $html = '
+        <form class="languageForm">
+        Langue : <br>
+        <table class="languageTable">
+            <tr>
+                <td><label>Français : </label></td>
+                <td><input class="language" type="checkbox" id="french" name="french" value="French" checked></td>
+            </tr>
+            <tr>
+                <td><label>Anglais : </label></td>
+                <td><input class="language" type="checkbox" id="english" name="english" value="Anglais" checked></td>
+            </tr>
+            <tr>
+                <td><label>Allemand : </label></td>
+                <td><input class="language" type="checkbox" id="deutsch" name="deutsch" value="Allemand" checked></td>
+            </tr>
+        </table>
+        </form>
+        <div id="answer">';
         /**Déclaration du tableau des langues */
         $Languages = array(
             "french" => "Français",
@@ -253,6 +273,7 @@ class wp_hydriade_shortcode{
         else{
             $html .="<h2>Vous devez vous connecter pour pouvoir voir les parties des hydriades</h2>";
         }
+        $html .= '</div>';
         return $html;
     }
     /**Fonction permettant l'ajout d'un joueur à une partie */

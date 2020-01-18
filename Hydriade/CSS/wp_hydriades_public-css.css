@@ -129,3 +129,17 @@
     display: flex;
     align-items: right;
   }
+  .languageForm{
+    font-family: Raleway;
+    padding-bottom: 10px;
+  }
+  .languageTable{
+    margin-left: 10px;
+    width: 130px;
+    line-height: 1;
+    border:0;
+
+  }
+  .languageTable td{
+    border:0;
+  }
