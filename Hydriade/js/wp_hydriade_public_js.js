@@ -37,11 +37,32 @@ function showOrHide(value) {
 }
 jQuery(document).ready(function() {
   jQuery(".language").change(function() {
-    var language = new Array();
+    var vLanguage = new Array();
     var C = jQuery('.languageForm').serializeArray();
     jQuery.each(C, function(i, field) { 
-      language.push(field.value);
-      
+      vLanguage.push(field.value);
     });
+    jQuery.ajax({
+      url : frontend_ajax_object.ajax_url,
+      type : 'post',
+      data : {
+          action : 'showParties',
+          language : vLanguage,
+      },
+      success : function( response ) {
+        jQuery('#answer').html(response);
+      }
+    });
+  });
+  jQuery.ajax({
+    url : frontend_ajax_object.ajax_url,
+    type : 'post',
+    data : {
+        action : 'showParties',
+        language : Array('Anglais','Allemand','French'),
+    },
+    success : function( response ) {
+      jQuery('#answer').html(response);
+    }
   });
 });
