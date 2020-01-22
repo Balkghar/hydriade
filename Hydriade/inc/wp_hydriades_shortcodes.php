@@ -141,18 +141,19 @@ class wp_hydriade_shortcode{
         $headers .= "X-Mailer: PHP". phpversion() ."\r\n";
 
         /**Vérifie si les données sont la et créé une metadata qui indique que le client est en attente de confirmation de son rôle */
-        if(!empty($_POST['billetGM']) && !empty($_POST['userID'])){
+        if(!empty($_POST['billetGM']) && !empty($_POST['userID'])  && !empty($_POST['regime'])){
             if(get_userdata(esc_attr(strip_tags($_POST['userID'])))){
                 update_user_meta($_POST['userID'], 'hydRole', 'waitGM');
                 update_user_meta($_POST['userID'], 'hydBillet', esc_attr(strip_tags($_POST['billetGM'])));
+                update_user_meta($_POST['userID'], 'regime', esc_attr(strip_tags($_POST['regime'])));
                 wp_mail($email, 'Inscription pour les hydriades', 'Votre inscription pour les hydriades en tant que MJ a bien été reçue.', $headers);
-
             }
         }
-        if(!empty($_POST['billetPL']) && !empty($_POST['userID'])){
+        if(!empty($_POST['billetPL']) && !empty($_POST['userID']) && !empty($_POST['regime'])){
             if(get_userdata(esc_attr(strip_tags($_POST['userID'])))){
                 update_user_meta($_POST['userID'], 'hydRole', 'waitPL');
                 update_user_meta($_POST['userID'], 'hydBillet', esc_attr(strip_tags($_POST['billetPL'])));
+                update_user_meta($_POST['userID'], 'regime', esc_attr(strip_tags($_POST['regime'])));
                 wp_mail($email, 'Inscription pour les hydriades', 'Votre inscription pour les hydriades en tant que joueu­·r·se a bien été reçue.', $headers);
             }
         }
@@ -392,7 +393,7 @@ class wp_hydriade_shortcode{
                             <input name="category" type="hidden" value="'.$term->term_id.'">
                             <input type="submit" value="Envoyer">
                             </form>
-                            </div></div></div>';                             
+                            </div></div></div>';                   
                         }
 
                         /**Affichage du formulaire pour créer une partie */
@@ -412,12 +413,18 @@ class wp_hydriade_shortcode{
             echo '<br>
             <p>Si vous avez acheté un billet pour les hydriades, c\'est ici que vous devez entrez votre numéro de billet pour pouvoir proposer et participer à des parties</p>
             <form enctype="multipart/form-data" action="" name="becomeGM" id="becomeGM" method="post">
+            Régime alimentaire : 
+            <input type="radio" name="regime" value="Vege"> Végétarien
+            <input type="radio" name="regime" value="Normal" checked> Normal<br>
             Numéro de billet :<br>
             <input type="text" name="billetGM">
             <input name="userID" type="hidden" value="'.get_current_user_id().'">
             <input type="submit" value="Je veux devenir un maître de jeu !">
             </form><br>
             <form enctype="multipart/form-data" action="" name="becomePL" id="becomePL" method="post">
+            Régime alimentaire : 
+            <input type="radio" name="regime" value="Vege"> Végétarien
+            <input type="radio" name="regime" value="Normal" checked> Normal<br>
             Numéro de billet :<br>
             <input type="text" name="billetPL">
             <input name="userID" type="hidden" value="'.get_current_user_id().'">

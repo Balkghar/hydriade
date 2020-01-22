@@ -18,6 +18,7 @@ class wp_hydriade{
         add_action('init', array($this, 'register_parties'));
         add_action('init', array($this,'addGMOrPLW'));
         add_action('init', array($this,'gestInscr'));
+        add_action('init', array($this,'exportPDF'));
         add_action( 'admin_init', array($this,'hydriade_register_settings') );
         add_action('admin_menu', array($this,'hydriade_register_options_page'));
         add_action('add_meta_boxes', array($this,'add_party_meta_boxes')); //add meta boxes
@@ -43,11 +44,31 @@ class wp_hydriade{
         /**Différents submenu pour le menu des hydriades */
         add_submenu_page('hydriade', 'Gestion des rôles', 'Gestion des rôles', 'edit_posts', 'admin_HydRole',array($this,'gestRole'));
         add_submenu_page('hydriade', 'Gestion des inscriptions', 'Gestion des inscriptions', 'edit_posts', 'admin_HydPartie',array($this,'gestPlayer'));
+        add_submenu_page('hydriade', 'Exportation des parties', 'Exportation des parties', 'edit_posts', 'export_pdf',array($this,'Export_pdf'));
 
     }
     /**Page d'accueil de l'extension */
     function admin_hydriade(){
         echo "<h1>Hydriade</h1>";
+    }
+    function Export_pdf(){
+        echo '<h1>Exportation des parties en pdf</h1>
+        <p>Cliquez sur le bouton pour exporter en pdf</p>
+        <form action="" method="post">
+        <input type="hidden" name="export" value="export">
+        <input type="submit" value="Exporter les parties en PDF">
+        </form>
+        ';
+    }
+    function exportPDF(){
+        if(!empty($_POST['export'])){
+            $pdf=new MYPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
+            $pdf->AddPage('P',"A4");
+
+            $pdf->writeHTML('<h1>Patate</h1>');
+            
+            $pdf->Output('parties.pdf', 'D');
+        }
     }
     /**Page d'inscription des parties de la part des joueurs */
     function gestPlayer(){
@@ -190,9 +211,17 @@ class wp_hydriade{
                 $current_user = get_user_by('ID',$_POST['userIDDe']);
                 $email = $current_user->user_email;
                 
+                $author_id = get_post_field ('post_author', $_POST['postIDInscr']);
+
+                $GM_user = get_user_by('ID',$author_id);
+
+                $GM_mail = $GM_user->user_email;
+
                 delete_user_meta($_POST['userIDDe'], 'Party'.$_POST['postIDDe'], 'Registered');
 
                 wp_mail($email, 'Désinscription pour la partie '.get_the_title($_POST['postIDDe']), 'Vous avez été désincrit de la partie '.get_the_title($_POST['postIDDe']), $headers);
+                
+                wp_mail($GM_mail, $current_user->display_name." a été désinscrit pour la partie ".get_the_title($_POST['postIDInscr']), "Un joueur a été désinscrit à votre partie : ".$current_user->display_name."\nMail de contact : ". $email, $headers);
 
             }
         }
@@ -343,6 +372,7 @@ class wp_hydriade{
     $wp_party_language = get_post_meta($post->ID,'wp_party_language',true);
     $wp_party_time = get_post_meta($post->ID,'wp_party_time',true);
     $wp_party_players = get_post_meta($post->ID,'wp_party_players',true);
+    $wp_party_table = get_post_meta($post->ID,'wp_party_table',true);
 
     ?>
     <p>Entrer les informations de votre partie</p>
@@ -352,19 +382,19 @@ class wp_hydriade{
         do_action('wp_party_admin_form_start'); 
         ?>
         <div class="field">
-            <label for="wp_party_GM">Le maître de jeu</label>
+            <label for="wp_party_GM">Le maître de jeu</label><br>
             <input type="text" name="wp_party_GM" id="wp_party_GM" value="<?php echo $wp_party_GM;?>"/>
         </div>
         <div class="field">
-            <label for="wp_party_ambiance">L'ambiance</label>
+            <label for="wp_party_ambiance">L'ambiance</label><br>
             <input type="text" name="wp_party_ambiance" id="wp_party_ambiance" value="<?php echo $wp_party_ambiance;?>"/>
         </div>
         <div class="field">
-            <label for="wp_party_univers">L'univers</label>
+            <label for="wp_party_univers">L'univers</label><br>
             <input type="text" name="wp_party_univers" id="wp_party_univers" value="<?php echo $wp_party_univers;?>"/>
         </div>
         <div class="field">
-            <label for="wp_party_pitch">Quelques mots</label>
+            <label for="wp_party_pitch">Quelques mots</label><br>
             <textarea name="wp_party_pitch" id="wp_party_pitch"><?php echo $wp_party_pitch;?></textarea>
             <!--<input type="textarea" name="wp_party_pitch" id="wp_party_pitch" value="<?php echo $wp_party_pitch;?>"/>-->
         </div>
@@ -413,6 +443,10 @@ class wp_hydriade{
         }
         echo '</select></div>';
         ?>
+        <div class="field">
+            <label for="wp_party_table">Numéro de table</label><br>
+            <input type="text" name="wp_party_table" id="wp_party_table" value="<?php echo $wp_party_table;?>"/>
+        </div>
         <?php 
         //after main form elementst hook
         do_action('wp_party_admin_form_end'); 
@@ -436,6 +470,8 @@ class wp_hydriade{
             $wp_party_language = get_post_meta($post->ID,'wp_party_language',true);
             $wp_party_time = get_post_meta($post->ID,'wp_party_time',true);
             $wp_party_players = get_post_meta($post->ID,'wp_party_players',true);
+            $wp_party_table = get_post_meta($post->ID,'wp_party_table',true);
+
             //display
             $html = '';
     
@@ -472,6 +508,9 @@ class wp_hydriade{
             //
             if(!empty($wp_party_players)){
                 $html .= '<b>Le nombre de joueurs</b> ' . $wp_party_players . '</br>';
+            }
+            if(!empty($wp_party_table)){
+                $html .= '<b>N° de table</b> ' . $wp_party_table . '</br>';
             }
             $html .= '</p>';
             //hook for outputting additional meta data (at the end of the form)
@@ -511,6 +550,8 @@ class wp_hydriade{
         $wp_party_language = isset($_POST['wp_party_language']) ? sanitize_text_field($_POST['wp_party_language']) : '';
         $wp_party_time = isset($_POST['wp_party_time']) ? sanitize_text_field($_POST['wp_party_time']) : '';
         $wp_party_players = isset($_POST['wp_party_players']) ? sanitize_text_field($_POST['wp_party_players']) : '';
+        $wp_party_table = isset($_POST['wp_party_table']) ? sanitize_text_field($_POST['wp_party_table']) : '';
+
 
         //update phone, memil and address fields
         update_post_meta($post_id, 'wp_party_GM', $wp_party_GM);
@@ -520,6 +561,8 @@ class wp_hydriade{
         update_post_meta($post_id, 'wp_party_language', $wp_party_language);
         update_post_meta($post_id, 'wp_party_time', $wp_party_time);
         update_post_meta($post_id, 'wp_party_players', $wp_party_players);
+        update_post_meta($post_id, 'wp_party_table', $wp_party_table);
+
 
 
         //location save hook 
@@ -611,5 +654,17 @@ class wp_hydriade{
     }
 }
 include(plugin_dir_path(__FILE__) . 'inc/wp_hydriades_shortcodes.php');
+
+include(plugin_dir_path(__FILE__) . 'TCPDF-master/tcpdf.php');
+
 $wp_hydriade = new wp_hydriade;
+class MYPDF extends TCPDF {
+    public function Header() {
+        $this->SetTextColor(167, 147, 68);
+    }
+    public function Footer() {
+        $this->SetY(-10);
+        $this->SetFont('helvetica', 'B', 8);
+    }
+}
 ?>
