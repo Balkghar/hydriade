@@ -54,15 +54,4 @@ jQuery(document).ready(function() {
       }
     });
   });
-  jQuery.ajax({
-    url : frontend_ajax_object.ajax_url,
-    type : 'post',
-    data : {
-        action : 'showParties',
-        language : Array('Anglais','Allemand','French'),
-    },
-    success : function( response ) {
-      jQuery('#answer').html(response);
-    }
-  });
 });

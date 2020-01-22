@@ -3,7 +3,7 @@ class wp_hydriade_shortcode{
     /**Fonction de construction de la partie shortcode de l'extension */
     public function __construct(){
         add_action('init', array($this,'register_hydriade_shortcodes')); //shortcodes
-        add_action('init', array($this,'partie_add'));
+        add_action('init', array($this,'partie_addOrDel'));
         add_action('init', array($this,'player_add_partie'));
         add_action('init', array($this,'plOrGmAdd'));
         add_action('wp_ajax_showParties', array($this, 'showParties'));
@@ -19,8 +19,12 @@ class wp_hydriade_shortcode{
      */
     public function show_parties(){
 
-        /**Déclaration du tableau des langues */
-        echo '
+        
+        /**vérifie si l'utilisateurs est en ligne */
+        if(is_user_logged_in())
+        {
+            wp_footer();
+            echo '
             <form class="languageForm">
             Langue : <br>
             <table class="languageTable">
@@ -37,17 +41,19 @@ class wp_hydriade_shortcode{
                     <td><input class="language" type="checkbox" id="deutsch" name="deutsch" value="Allemand" checked></td>
                 </tr>
             </table>
-        </form>';
-        /**vérifie si l'utilisateurs est en ligne */
-        if(is_user_logged_in())
-        {
-            $html = '<div id="answer">';
+            </form>';
+
+            echo '<div id="answer">';
+
+            /**Déclaration du tableau des langues */
+            
+
+            do_action('showPartiesFunc');
         }
         else{
-            $html .="<h2>Vous devez vous connecter pour pouvoir voir les parties des hydriades</h2>";
+            echo "<h2>Vous devez vous connecter pour pouvoir voir les parties des hydriades</h2>";
         }
-        $html .= '</div>';
-        return $html;
+        echo '</div>';
     }
     /**Fonction permettant l'ajout d'un joueur à une partie */
     public function player_add_partie(){
@@ -88,7 +94,7 @@ class wp_hydriade_shortcode{
         
     }
     /**Permet d'ajouter une partie */
-    public function partie_add(){
+    public function partie_addOrDel(){
         /**Vérifie si les données sont là */
         if(!empty($_POST['title']) && !empty($_POST['universe']) && !empty($_POST['ambiance']) && !empty($_POST['MJ']) && !empty($_POST['players']) && !empty($_POST['language']) && !empty($_POST['pitch']) && !empty($_POST['category'])  && !empty($_POST['time'])){
             /**Créé le post et sauvegarde son ID */
@@ -109,6 +115,12 @@ class wp_hydriade_shortcode{
             update_post_meta($post_id, 'wp_party_language', esc_attr(strip_tags($_POST['language'])));
             update_post_meta($post_id, 'wp_party_time', esc_attr(strip_tags($_POST['time'])));
             update_post_meta($post_id, 'wp_party_players', esc_attr(strip_tags($_POST['players'])));
+        }
+        if(!empty($_POST['userIDdel_party']) && !empty($_POST['postIDdel_party'])){
+            $authr_id = get_post_field ('post_author',$_POST['postIDdel_party']);
+            if($authr_id == get_current_user_id()){
+                wp_trash_post($_POST['postIDdel_party']);
+            }
         }
     }
     /**Permet l'ajout d'attente à l'utilisateurs voulant devenir MJ ou joueur */
@@ -136,9 +148,6 @@ class wp_hydriade_shortcode{
                 wp_mail($email, 'Inscription pour les hydriades', 'Votre inscription pour les hydriades en tant que MJ a bien été reçue.', $headers);
 
             }
-            else{
-                
-            }
         }
         if(!empty($_POST['billetPL']) && !empty($_POST['userID'])){
             if(get_userdata(esc_attr(strip_tags($_POST['userID'])))){
@@ -146,24 +155,38 @@ class wp_hydriade_shortcode{
                 update_user_meta($_POST['userID'], 'hydBillet', esc_attr(strip_tags($_POST['billetPL'])));
                 wp_mail($email, 'Inscription pour les hydriades', 'Votre inscription pour les hydriades en tant que joueu­·r·se a bien été reçue.', $headers);
             }
-            else{
-
-            }
         }
         
     }
     public function showParties(){
         $ifLangue = array();
         if(!empty($_POST['language'])){
-            $langue = $_POST['language'];
-            foreach($langue as $v){
-                if($v == 'French'){
-                    array_push($ifLangue, 'Français');
-                }
-                else{
-                    array_push($ifLangue, $v);
+            if(is_array($_POST['language'])){
+                $langue = $_POST['language'];
+                foreach($langue as $v){
+                    if($v == 'French'){
+                        array_push($ifLangue, 'Français');
+                    }
+                    else{
+                        array_push($ifLangue, $v);
+                    }
                 }
             }
+            else{
+                $ifLangue = array(
+                    "Français",
+                    "Anglais",
+                    "Allemand"
+                );
+            }
+            
+        }
+        else{
+            $ifLangue = array(
+                "Français",
+                "Anglais",
+                "Allemand"
+            );
         }
         $Languages = array(
             "french" => "Français",
@@ -186,6 +209,7 @@ class wp_hydriade_shortcode{
                 wp_reset_query();
                 /**Argument pour chercher les parties selon la taxonomy */
                 $args = array('post_type' => 'wp_parties',
+                    'post_status' => array('publish'),
                     'tax_query' => array(
                         array(
                             'taxonomy' => 'types',
@@ -285,7 +309,7 @@ class wp_hydriade_shortcode{
                                             ';
                                         }
                                         else if($valu == "registeredWait"){
-                                            $html.=
+                                            echo 
                                             '<br>
                                             <form enctype="multipart/form-data" action="" name="cancel" id="cancel" method="post">
                                             <input type="hidden" name="userIDCan" value="'.get_current_user_id().'">
@@ -309,9 +333,18 @@ class wp_hydriade_shortcode{
                                             </form>
                                             ';
                                         }
-                                        
                                     }
-
+                                }
+                                $authr_id = get_post_field ('post_author',get_the_ID());
+                                if($authr_id == get_current_user_id()){
+                                    echo 
+                                    '<br>
+                                    <form enctype="multipart/form-data" action="" name="del_party" id="del_party" method="post">
+                                    <input type="hidden" name="userIDdel_party" value="'.get_current_user_id().'">
+                                    <input type="hidden" name="postIDdel_party" value="'.get_the_ID().'">
+                                    <input type="submit" value="Supprimer la partie">
+                                    </form>
+                                    ';
                                 }
                                 
                             }

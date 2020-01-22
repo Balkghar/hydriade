@@ -159,10 +159,17 @@ class wp_hydriade{
 
                 $email = $current_user->user_email;
 
+                $author_id = get_post_field ('post_author', $_POST['postIDInscr']);
+
+                $GM_user = get_user_by('ID',$author_id);
+
+                $GM_mail = $GM_user->user_email;
+
                 update_user_meta($_POST['userIDInscr'], 'Party'.$_POST['postIDInscr'], 'Registered');
                 
                 wp_mail($email, 'Inscription pour la partie '.get_the_title($_POST['postIDInscr']), 'Votre inscription pour la partie '.get_the_title($_POST['postIDInscr']).' a été acceptée.', $headers);
-
+                
+                wp_mail($GM_mail, $current_user->display_name." s'est inscrit pour la partie ".get_the_title($_POST['postIDInscr']), "Un joueur s'est inscrit à votre partie : ".$current_user->display_name."\nMail de contact : ". $email, $headers);
             }
         }
         if(!empty($_POST['userIDRefu']) && !empty($_POST['postIDRefu'])){
