@@ -87,8 +87,19 @@ class wp_hydriade_shortcode{
             }    
             if(!empty($_POST['userIDDes']) && !empty($_POST['postIDDes'])){
                 if(get_userdata(esc_attr(strip_tags($_POST['userIDDes']))) && get_post(esc_attr(strip_tags($_POST['postIDDes'])))){
+
                     delete_user_meta($_POST['userIDDes'], 'Party'.$_POST['postIDDes'], 'Registered');
+
+                    $author_id = get_post_field ('post_author', $_POST['postIDDes']);
+
+                    $GM_user = get_user_by('ID',$author_id);
+
+                    $GM_mail = $GM_user->user_email;
+
                     wp_mail($email, 'Désincription à '.get_the_title($_POST['postIDDes']), 'Votre Désincription à la partie "'.get_the_title($_POST['postIDDes']).'" a bien été reçu.', $headers);
+
+                    wp_mail($GM_mail, $current_user->display_name." s'est désinscrit pour la partie ".get_the_title($_POST['postIDDes']), "Un joueur s'est désinscrit à votre partie : ".$current_user->display_name."\nMail de contact : ". $email, $headers);
+
                 }
             }
         
@@ -389,7 +400,7 @@ class wp_hydriade_shortcode{
                             }
                             echo  '</select>';
                             echo 'Pitch du scénario :<br>
-                            <textarea name="pitch"></textarea>
+                            <textarea class="white-space" name="pitch"></textarea>
                             <input name="category" type="hidden" value="'.$term->term_id.'">
                             <input type="submit" value="Envoyer">
                             </form>

@@ -35,14 +35,14 @@ function showOrHide(value) {
     v.className  = "buPitch2";
   }
 }
-jQuery(document).ready(function() {
-  jQuery(".language").change(function() {
+jQuery(document).ready(function($) {
+  $(".language").change(function() {
     var vLanguage = new Array();
-    var C = jQuery('.languageForm').serializeArray();
+    var C = $('.languageForm').serializeArray();
     jQuery.each(C, function(i, field) { 
       vLanguage.push(field.value);
     });
-    jQuery.ajax({
+    $.ajax({
       url : frontend_ajax_object.ajax_url,
       type : 'post',
       data : {
@@ -50,7 +50,7 @@ jQuery(document).ready(function() {
           language : vLanguage,
       },
       success : function( response ) {
-        jQuery('#answer').html(response);
+        $('#answer').html(response);
       }
     });
   });

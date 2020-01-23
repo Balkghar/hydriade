@@ -19,6 +19,7 @@ class wp_hydriade{
         add_action('init', array($this,'addGMOrPLW'));
         add_action('init', array($this,'gestInscr'));
         add_action('init', array($this,'exportPDF'));
+        add_action('publish_to_trash', array($this,'prevent_user'));
         add_action( 'admin_init', array($this,'hydriade_register_settings') );
         add_action('admin_menu', array($this,'hydriade_register_options_page'));
         add_action('add_meta_boxes', array($this,'add_party_meta_boxes')); //add meta boxes
@@ -26,6 +27,7 @@ class wp_hydriade{
         add_action('save_post_wp_parties', array($this,'save_party')); //save party
         add_action( 'init', array($this,'add_custom_taxonomy'), 0 );
         add_action('wp_enqueue_scripts', array($this,'enqueue_public_scripts_and_styles')); //public scripts and styles
+        add_action('admin_enqueue_scripts', array($this,'enqueue_public_scripts_and_styles'));
         register_activation_hook(__FILE__, array($this,'plugin_activate')); //activate hook
         register_deactivation_hook(__FILE__, array($this,'plugin_deactivate')); //deactivate hook
     }
@@ -51,6 +53,40 @@ class wp_hydriade{
     function admin_hydriade(){
         echo "<h1>Hydriade</h1>";
     }
+    function prevent_user($post){
+
+        $urlSite = get_option('NameMail');
+        $headers .= "Return-Path: Hydriade <".$urlSite.">\r\n";
+        $headers .= "Reply-To: Hydriade <".$urlSite.">\r\n";
+        $headers .= "L'association de l'hydre\r\n";
+        $headers .= "From: Hydriade <".$urlSite.">\r\n"; 
+        $headers .= "MIME-Version: 1.0\r\n";
+        $headers .= "Content-type: text/plain; charset=utf-8\r\n";
+        $headers .= "X-Priority: 3\r\n";
+        $headers .= "X-Mailer: PHP". phpversion() ."\r\n";
+
+
+        if('wp_parties' == $post->post_type) {
+            $users = get_users(array('meta_key' => 'Party'.$post->ID, 'meta_value' => 'Registered'));
+            foreach($users as $user){
+                delete_user_meta($user->ID, 'Party'.$post->ID, 'registeredWait');
+                $user_mail = $user->user_email;
+                wp_mail($user_mail, 'La partie "'.get_the_title($post->ID).'" a été supprimé', 'La partie "'.get_the_title($post->ID).'" a été supprimé', $headers);
+                
+            }
+
+            
+            $author_id = get_post_field ('post_author', $post->ID);
+
+            $GM_user = get_user_by('ID',$author_id);
+
+            $GM_mail = $GM_user->user_email;
+
+            wp_mail($GM_mail, 'La partie "'.get_the_title($post->ID).'" a été supprimé', 'La partie "'.get_the_title($post->ID).'" a été supprimé', $headers);
+
+        }
+        
+    }
     function Export_pdf(){
         echo '<h1>Exportation des parties en pdf</h1>
         <p>Cliquez sur le bouton pour exporter en pdf</p>
@@ -60,12 +96,70 @@ class wp_hydriade{
         </form>
         ';
     }
+    /**
+     * Fonction permettant l'exportation des informations des parties
+     */
     function exportPDF(){
         if(!empty($_POST['export'])){
             $pdf=new MYPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
+            $pdf->SetMargins(20, 20, 20, true);
             $pdf->AddPage('P',"A4");
+            $pdf->writeHTML('<h1>Hydriade</h1>');
 
-            $pdf->writeHTML('<h1>Patate</h1>');
+            
+            /**Permet d'obtenir la taxonomy qu'on a créé avant */
+            $terms = get_terms(array(
+                'taxonomy' => 'types',
+                'hide_empty' => false,
+                'orderby' => 'ID',
+                'order'   => 'ASC',
+            ));
+            /**Vérifie si le tableau n'est pas vide */
+            if(!empty($terms)){
+                /**Boucle pour afficher les éléments du tableau */
+                foreach($terms as $term){
+                    
+                    $pdf->AddPage('L',"A4");
+                    $pdf->writeHTML('<h2>'.$term->name.'</h2>');
+                    /**Reset du query */
+                    wp_reset_query();
+                    /**Argument pour chercher les parties selon la taxonomy */
+                    $args = array('post_type' => 'wp_parties',
+                        'post_status' => array('publish'),
+                        'tax_query' => array(
+                            array(
+                                'taxonomy' => 'types',
+                                'field' => 'slug',
+                                'terms' => $term->slug,
+                                'orderby' => 'date',
+                                'order'   => 'ASC',
+                            ),
+                        ),
+                    );
+                    $loop = new WP_Query($args);
+                    if($loop->have_posts()) {
+                        while($loop->have_posts()) : $loop->the_post();
+                        $pdf->writeHTML('<h3>'.get_the_title().' / N° de table : '.get_post_meta(get_the_ID(),'wp_party_table', true).'</h3>');
+                        $content = '<table><tr style="font-weight: bold;"><th>Nom ou pseudo</th><th>Régime alimentaire</th></tr>';
+                        $users = get_users(array('meta_key' => 'Party'.get_the_ID(), 'meta_value' => 'Registered'));
+                        $authr_id = get_post_field ('post_author',get_the_ID());
+                        $author = get_user_by('ID', $authr_id);
+                        foreach($users as $user){
+                            foreach(get_user_meta($user->ID, 'regime') as $regime){
+                                $content .= '<tr><td>'.$user->display_name.'</td><td>'.$regime.'</td></tr>';
+                            }
+                        }
+                        foreach(get_user_meta($authr_id, 'regime') as $regime){
+                            $content .= '<tr><td>'.$author->display_name.'</td><td>'.$regime.'</td></tr>';
+                        }
+                        $content .= '</table>';
+
+                        $pdf->writeHTML($content);
+
+                        endwhile;
+                    }
+                }
+            }
             
             $pdf->Output('parties.pdf', 'D');
         }
@@ -395,8 +489,7 @@ class wp_hydriade{
         </div>
         <div class="field">
             <label for="wp_party_pitch">Quelques mots</label><br>
-            <textarea name="wp_party_pitch" id="wp_party_pitch"><?php echo $wp_party_pitch;?></textarea>
-            <!--<input type="textarea" name="wp_party_pitch" id="wp_party_pitch" value="<?php echo $wp_party_pitch;?>"/>-->
+            <textarea class="white-space" name="wp_party_pitch" id="wp_party_pitch"><?php echo $wp_party_pitch;?></textarea>
         </div>
         <?php
         $Languages = array(
@@ -546,7 +639,7 @@ class wp_hydriade{
         $wp_party_GM = isset($_POST['wp_party_GM']) ? sanitize_text_field($_POST['wp_party_GM']) : '';
         $wp_party_ambiance = isset($_POST['wp_party_ambiance']) ? sanitize_text_field($_POST['wp_party_ambiance']) : '';
         $wp_party_univers = isset($_POST['wp_party_univers']) ? sanitize_text_field($_POST['wp_party_univers']) : '';
-        $wp_party_pitch = isset($_POST['wp_party_pitch']) ? sanitize_text_field($_POST['wp_party_pitch']) : '';
+        $wp_party_pitch = isset($_POST['wp_party_pitch']) ? $_POST['wp_party_pitch'] : '';
         $wp_party_language = isset($_POST['wp_party_language']) ? sanitize_text_field($_POST['wp_party_language']) : '';
         $wp_party_time = isset($_POST['wp_party_time']) ? sanitize_text_field($_POST['wp_party_time']) : '';
         $wp_party_players = isset($_POST['wp_party_players']) ? sanitize_text_field($_POST['wp_party_players']) : '';
@@ -647,6 +740,7 @@ class wp_hydriade{
         wp_localize_script( 'wp_hydriade_public_js', 'frontend_ajax_object',array( 'ajax_url' => admin_url( 'admin-ajax.php' ) ) );
         wp_enqueue_script('jquery', 'https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js', array(), null, true);
     }
+    
     //trigered on deactivation of the plugin (called only once)
     public function plugin_deactivate(){
         //flush permalinks
@@ -658,6 +752,10 @@ include(plugin_dir_path(__FILE__) . 'inc/wp_hydriades_shortcodes.php');
 include(plugin_dir_path(__FILE__) . 'TCPDF-master/tcpdf.php');
 
 $wp_hydriade = new wp_hydriade;
+
+/**
+ * classes pour les PDFs
+ */
 class MYPDF extends TCPDF {
     public function Header() {
         $this->SetTextColor(167, 147, 68);
