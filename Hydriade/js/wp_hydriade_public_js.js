@@ -35,23 +35,47 @@ function showOrHide(value) {
     v.className  = "buPitch2";
   }
 }
+
 jQuery(document).ready(function($) {
+  function show_part(){
+      var vLanguage = new Array();
+      var C = $('.languageForm').serializeArray();
+      jQuery.each(C, function(i, field) { 
+        vLanguage.push(field.value);
+      });
+      $.ajax({
+        url : frontend_ajax_object.ajax_url,
+        type : 'post',
+        data : {
+            action : 'showParties',
+            language : vLanguage,
+        },
+        success : function( response ) {
+          $('#answer').html(response);
+          ajax_tricks();
+        }
+      });
+      
+  }
+  function ajax_tricks(){
+    $('form').on('submit', function(e) {
+      $("input[type=submit]").prop('disabled', true);
+      e.preventDefault();
+      info_post = $(this).serialize();
+      $.ajax({
+        url : frontend_ajax_object.ajax_url,
+        type : 'post',
+        data : 'action=form_info&'+info_post,
+        success : function( response ) {
+          show_part();
+          ajax_tricks();
+        }
+      });
+    });
+  }
+  ajax_tricks();
   $(".language").change(function() {
-    var vLanguage = new Array();
-    var C = $('.languageForm').serializeArray();
-    jQuery.each(C, function(i, field) { 
-      vLanguage.push(field.value);
-    });
-    $.ajax({
-      url : frontend_ajax_object.ajax_url,
-      type : 'post',
-      data : {
-          action : 'showParties',
-          language : vLanguage,
-      },
-      success : function( response ) {
-        $('#answer').html(response);
-      }
-    });
+    show_part();
   });
+  
 });

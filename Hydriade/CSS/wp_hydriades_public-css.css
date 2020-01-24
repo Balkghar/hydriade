@@ -118,14 +118,12 @@
     -webkit-transition: max-height 1s;
     -moz-transition: max-height 1s;
     transition: max-height 1s;
-    white-space: pre-wrap;
   }
   .displayBlock{    
     -webkit-transition: max-height 1s;
     -moz-transition: max-height 1s;
     transition: max-height 1s;
     overflow: hidden;
-    white-space: pre-wrap;
   }
   .block{
     display: flex;

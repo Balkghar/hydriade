@@ -27,7 +27,7 @@ class wp_hydriade{
         add_action('save_post_wp_parties', array($this,'save_party')); //save party
         add_action( 'init', array($this,'add_custom_taxonomy'), 0 );
         add_action('wp_enqueue_scripts', array($this,'enqueue_public_scripts_and_styles')); //public scripts and styles
-        add_action('admin_enqueue_scripts', array($this,'enqueue_public_scripts_and_styles'));
+        add_action('admin_enqueue_scripts', array($this,'enqueue_admin_scripts_and_styles'));
         register_activation_hook(__FILE__, array($this,'plugin_activate')); //activate hook
         register_deactivation_hook(__FILE__, array($this,'plugin_deactivate')); //deactivate hook
     }
@@ -71,7 +71,7 @@ class wp_hydriade{
             foreach($users as $user){
                 delete_user_meta($user->ID, 'Party'.$post->ID, 'registeredWait');
                 $user_mail = $user->user_email;
-                wp_mail($user_mail, 'La partie "'.get_the_title($post->ID).'" a été supprimé', 'La partie "'.get_the_title($post->ID).'" a été supprimé', $headers);
+                wp_mail($user_mail, 'La partie "'.str_replace('&#8217;','\'',get_the_title($post->ID)).'" a été supprimé', 'La partie "'.get_the_title($post->ID).'" a été supprimé', $headers);
                 
             }
 
@@ -82,7 +82,7 @@ class wp_hydriade{
 
             $GM_mail = $GM_user->user_email;
 
-            wp_mail($GM_mail, 'La partie "'.get_the_title($post->ID).'" a été supprimé', 'La partie "'.get_the_title($post->ID).'" a été supprimé', $headers);
+            wp_mail($GM_mail, 'La partie "'.str_replace('&#8217;','\'',get_the_title($post->ID)).'" a été supprimé', 'La partie "'.get_the_title($post->ID).'" a été supprimé', $headers);
 
         }
         
@@ -282,9 +282,9 @@ class wp_hydriade{
 
                 update_user_meta($_POST['userIDInscr'], 'Party'.$_POST['postIDInscr'], 'Registered');
                 
-                wp_mail($email, 'Inscription pour la partie '.get_the_title($_POST['postIDInscr']), 'Votre inscription pour la partie '.get_the_title($_POST['postIDInscr']).' a été acceptée.', $headers);
+                wp_mail($email, "Inscription pour la partie ".str_replace('&#8217;','\'',get_the_title($_POST['postIDInscr'])), "Votre inscription pour la partie ".get_the_title($_POST['postIDInscr']). " a été acceptée.", $headers);
                 
-                wp_mail($GM_mail, $current_user->display_name." s'est inscrit pour la partie ".get_the_title($_POST['postIDInscr']), "Un joueur s'est inscrit à votre partie : ".$current_user->display_name."\nMail de contact : ". $email, $headers);
+                wp_mail($GM_mail, $current_user->display_name." s'est inscrit pour la partie ".str_replace('&#8217;','\'',get_the_title($_POST['postIDInscr']))."", "Un joueur s'est inscrit à votre partie : ".$current_user->display_name."\nMail de contact : ". $email, $headers);
             }
         }
         if(!empty($_POST['userIDRefu']) && !empty($_POST['postIDRefu'])){
@@ -295,7 +295,7 @@ class wp_hydriade{
 
                 delete_user_meta($_POST['userIDRefu'], 'Party'.$_POST['postIDRefu'], 'registeredWait');
 
-                wp_mail($email, 'Inscription pour la partie '.get_the_title($_POST['postIDRefu']), 'Votre inscription pour la partie '.get_the_title($_POST['postIDRefu']).' a été refusée.', $headers);
+                wp_mail($email, "Inscription pour la partie ".str_replace('&#8217;','\'',get_the_title($_POST['postIDRefu'])), "Votre inscription pour la partie ".get_the_title($_POST['postIDRefu'])." a été refusée.", $headers);
 
             }
         }
@@ -313,9 +313,9 @@ class wp_hydriade{
 
                 delete_user_meta($_POST['userIDDe'], 'Party'.$_POST['postIDDe'], 'Registered');
 
-                wp_mail($email, 'Désinscription pour la partie '.get_the_title($_POST['postIDDe']), 'Vous avez été désincrit de la partie '.get_the_title($_POST['postIDDe']), $headers);
+                wp_mail($email, 'Désinscription pour la partie '.str_replace('&#8217;','\'',get_the_title($_POST['postIDDe'])), 'Vous avez été désincrit de la partie '.get_the_title($_POST['postIDDe']), $headers);
                 
-                wp_mail($GM_mail, $current_user->display_name." a été désinscrit pour la partie ".get_the_title($_POST['postIDInscr']), "Un joueur a été désinscrit à votre partie : ".$current_user->display_name."\nMail de contact : ". $email, $headers);
+                wp_mail($GM_mail, $current_user->display_name." a été désinscrit pour la partie ".str_replace('&#8217;','\'',get_the_title($_POST['postIDInscr'])), "Un joueur a été désinscrit à votre partie : ".$current_user->display_name."\nMail de contact : ". $email, $headers);
 
             }
         }
@@ -740,7 +740,9 @@ class wp_hydriade{
         wp_localize_script( 'wp_hydriade_public_js', 'frontend_ajax_object',array( 'ajax_url' => admin_url( 'admin-ajax.php' ) ) );
         wp_enqueue_script('jquery', 'https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js', array(), null, true);
     }
-    
+    public function enqueue_admin_scripts_and_styles(){
+        wp_enqueue_style('wp_hydriades_public_styles', plugin_dir_url(__FILE__).'CSS/wp_hydriades_public-css.css',array(), '1.0', 'all');
+    }
     //trigered on deactivation of the plugin (called only once)
     public function plugin_deactivate(){
         //flush permalinks

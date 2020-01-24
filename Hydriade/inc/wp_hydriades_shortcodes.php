@@ -3,11 +3,20 @@ class wp_hydriade_shortcode{
     /**Fonction de construction de la partie shortcode de l'extension */
     public function __construct(){
         add_action('init', array($this,'register_hydriade_shortcodes')); //shortcodes
-        add_action('init', array($this,'partie_addOrDel'));
-        add_action('init', array($this,'player_add_partie'));
-        add_action('init', array($this,'plOrGmAdd'));
+        add_action('init', array($this,'form_info'));
+
+        /**Ajax function */
+
         add_action('wp_ajax_showParties', array($this, 'showParties'));
         add_action('wp_ajax_nopriv_showParties', array($this, 'showParties'));
+
+        add_action('wp_ajax_form_info', array($this, 'form_info'));
+        add_action('wp_ajax_nopriv_form_info', array($this, 'form_info'));
+
+
+        /**End Ajax function */
+
+
         add_action('showPartiesFunc', array($this, 'showParties'));
     }
     public function register_hydriade_shortcodes(){
@@ -56,7 +65,7 @@ class wp_hydriade_shortcode{
         echo '</div>';
     }
     /**Fonction permettant l'ajout d'un joueur à une partie */
-    public function player_add_partie(){
+    public function form_info(){
 
             $current_user = get_currentuserinfo();
 
@@ -76,13 +85,13 @@ class wp_hydriade_shortcode{
             if(!empty($_POST['userID']) && !empty($_POST['postID'])){
                 if(get_userdata(esc_attr(strip_tags($_POST['userID']))) &&  get_post(esc_attr(strip_tags($_POST['postID'])))){
                     update_user_meta($_POST['userID'], 'Party'.$_POST['postID'], 'registeredWait');
-                    wp_mail($email, 'Inscription à '.get_the_title($_POST['postID']), 'Votre inscription à la partie "'.get_the_title($_POST['postID']).'" a bien été reçu.', $headers);
+                    wp_mail($email, 'Inscription à '.str_replace('&#8217;','\'',get_the_title($_POST['postID'])), 'Votre inscription à la partie "'.get_the_title($_POST['postID']).'" a bien été reçu.', $headers);
                 }
             }
             if(!empty($_POST['userIDCan']) && !empty($_POST['postIDCan'])){
                 if(get_userdata(esc_attr(strip_tags($_POST['userIDCan']))) &&  get_post(esc_attr(strip_tags($_POST['postIDCan'])))){
                     delete_user_meta($_POST['userIDCan'], 'Party'.$_POST['postIDCan'], 'registeredWait');
-                    wp_mail($email, 'Annulation  d\'inscription à '.get_the_title($_POST['postIDCan']), 'Votre annulation d\'inscription à la partie "'.get_the_title($_POST['postIDCan']).'" a bien été reçu.', $headers);
+                    wp_mail($email, 'Annulation  d\'inscription à '.str_replace('&#8217;','\'',get_the_title($_POST['postIDCan'])), 'Votre annulation d\'inscription à la partie "'.get_the_title($_POST['postIDCan']).'" a bien été reçu.', $headers);
                 }
             }    
             if(!empty($_POST['userIDDes']) && !empty($_POST['postIDDes'])){
@@ -96,79 +105,56 @@ class wp_hydriade_shortcode{
 
                     $GM_mail = $GM_user->user_email;
 
-                    wp_mail($email, 'Désincription à '.get_the_title($_POST['postIDDes']), 'Votre Désincription à la partie "'.get_the_title($_POST['postIDDes']).'" a bien été reçu.', $headers);
+                    wp_mail($email, 'Désincription à '.str_replace('&#8217;','\'',get_the_title($_POST['postIDDes'])), 'Votre Désincription à la partie "'.get_the_title($_POST['postIDDes']).'" a bien été reçu.', $headers);
 
-                    wp_mail($GM_mail, $current_user->display_name." s'est désinscrit pour la partie ".get_the_title($_POST['postIDDes']), "Un joueur s'est désinscrit à votre partie : ".$current_user->display_name."\nMail de contact : ". $email, $headers);
+                    wp_mail($GM_mail, $current_user->display_name." s'est désinscrit pour la partie ".str_replace('&#8217;','\'',get_the_title($_POST['postIDDes'])), "Un joueur s'est désinscrit à votre partie : ".$current_user->display_name."\nMail de contact : ". $email, $headers);
 
                 }
             }
-        
-    }
-    /**Permet d'ajouter une partie */
-    public function partie_addOrDel(){
-        /**Vérifie si les données sont là */
-        if(!empty($_POST['title']) && !empty($_POST['universe']) && !empty($_POST['ambiance']) && !empty($_POST['MJ']) && !empty($_POST['players']) && !empty($_POST['language']) && !empty($_POST['pitch']) && !empty($_POST['category'])  && !empty($_POST['time'])){
-            /**Créé le post et sauvegarde son ID */
-            $post_id = wp_insert_post(array(
-                'post_title' => esc_attr(strip_tags($_POST['title'])),
-				'post_type' => 'wp_parties',
-                'post_status' => 'pending'
-            ));
-            /** Associe le post à la category que le MJ a choisi*/
-            $term = get_term(esc_attr(strip_tags($_POST['category'])) , 'types');
-            wp_set_object_terms($post_id, $term->name, 'types');
+            /**Vérifie si les données sont là */
+            if(!empty($_POST['title']) && !empty($_POST['universe']) && !empty($_POST['ambiance']) && !empty($_POST['MJ']) && !empty($_POST['players']) && !empty($_POST['language']) && !empty($_POST['pitch']) && !empty($_POST['category'])  && !empty($_POST['time'])){
+                /**Créé le post et sauvegarde son ID */
+                $post_id = wp_insert_post(array(
+                    'post_title' => esc_attr(strip_tags($_POST['title'])),
+                    'post_type' => 'wp_parties',
+                    'post_status' => 'pending'
+                ));
+                /** Associe le post à la category que le MJ a choisi*/
+                $term = get_term(esc_attr(strip_tags($_POST['category'])) , 'types');
+                wp_set_object_terms($post_id, $term->name, 'types');
 
-            /**Ajoute les données au post */
-            update_post_meta($post_id, 'wp_party_GM', esc_attr(strip_tags($_POST['MJ'])));
-            update_post_meta($post_id, 'wp_party_ambiance', esc_attr(strip_tags($_POST['ambiance'])));
-            update_post_meta($post_id, 'wp_party_univers', esc_attr(strip_tags($_POST['universe'])));
-            update_post_meta($post_id, 'wp_party_pitch', esc_attr(strip_tags($_POST['pitch'])));
-            update_post_meta($post_id, 'wp_party_language', esc_attr(strip_tags($_POST['language'])));
-            update_post_meta($post_id, 'wp_party_time', esc_attr(strip_tags($_POST['time'])));
-            update_post_meta($post_id, 'wp_party_players', esc_attr(strip_tags($_POST['players'])));
-        }
-        if(!empty($_POST['userIDdel_party']) && !empty($_POST['postIDdel_party'])){
-            $authr_id = get_post_field ('post_author',$_POST['postIDdel_party']);
-            if($authr_id == get_current_user_id()){
-                wp_trash_post($_POST['postIDdel_party']);
+                /**Ajoute les données au post */
+                update_post_meta($post_id, 'wp_party_GM', esc_attr(strip_tags($_POST['MJ'])));
+                update_post_meta($post_id, 'wp_party_ambiance', esc_attr(strip_tags($_POST['ambiance'])));
+                update_post_meta($post_id, 'wp_party_univers', esc_attr(strip_tags($_POST['universe'])));
+                update_post_meta($post_id, 'wp_party_pitch', esc_attr(strip_tags($_POST['pitch'])));
+                update_post_meta($post_id, 'wp_party_language', esc_attr(strip_tags($_POST['language'])));
+                update_post_meta($post_id, 'wp_party_time', esc_attr(strip_tags($_POST['time'])));
+                update_post_meta($post_id, 'wp_party_players', esc_attr(strip_tags($_POST['players'])));
             }
-        }
-    }
-    /**Permet l'ajout d'attente à l'utilisateurs voulant devenir MJ ou joueur */
-    public function plOrGmAdd(){
-        
-        $current_user = get_currentuserinfo();
-
-        $email = $current_user->user_email;
-
-        $urlSite = get_option('NameMail');
-        $headers .= "Return-Path: Hydriade <".$urlSite.">\r\n";
-        $headers .= "Reply-To: Hydriade <".$urlSite.">\r\n";
-        $headers .= "L'association de l'hydre\r\n";
-        $headers .= "From: Hydriade <".$urlSite.">\r\n"; 
-        $headers .= "MIME-Version: 1.0\r\n";
-        $headers .= "Content-type: text/plain; charset=utf-8\r\n";
-        $headers .= "X-Priority: 3\r\n";
-        $headers .= "X-Mailer: PHP". phpversion() ."\r\n";
-
-        /**Vérifie si les données sont la et créé une metadata qui indique que le client est en attente de confirmation de son rôle */
-        if(!empty($_POST['billetGM']) && !empty($_POST['userID'])  && !empty($_POST['regime'])){
-            if(get_userdata(esc_attr(strip_tags($_POST['userID'])))){
-                update_user_meta($_POST['userID'], 'hydRole', 'waitGM');
-                update_user_meta($_POST['userID'], 'hydBillet', esc_attr(strip_tags($_POST['billetGM'])));
-                update_user_meta($_POST['userID'], 'regime', esc_attr(strip_tags($_POST['regime'])));
-                wp_mail($email, 'Inscription pour les hydriades', 'Votre inscription pour les hydriades en tant que MJ a bien été reçue.', $headers);
+            if(!empty($_POST['userIDdel_party']) && !empty($_POST['postIDdel_party'])){
+                $authr_id = get_post_field ('post_author',$_POST['postIDdel_party']);
+                if($authr_id == get_current_user_id()){
+                    wp_trash_post($_POST['postIDdel_party']);
+                }
             }
-        }
-        if(!empty($_POST['billetPL']) && !empty($_POST['userID']) && !empty($_POST['regime'])){
-            if(get_userdata(esc_attr(strip_tags($_POST['userID'])))){
-                update_user_meta($_POST['userID'], 'hydRole', 'waitPL');
-                update_user_meta($_POST['userID'], 'hydBillet', esc_attr(strip_tags($_POST['billetPL'])));
-                update_user_meta($_POST['userID'], 'regime', esc_attr(strip_tags($_POST['regime'])));
-                wp_mail($email, 'Inscription pour les hydriades', 'Votre inscription pour les hydriades en tant que joueu­·r·se a bien été reçue.', $headers);
+            /**Vérifie si les données sont la et créé une metadata qui indique que le client est en attente de confirmation de son rôle */
+            if(!empty($_POST['billetGM']) && !empty($_POST['userID'])  && !empty($_POST['regime'])){
+                if(get_userdata(esc_attr(strip_tags($_POST['userID'])))){
+                    update_user_meta($_POST['userID'], 'hydRole', 'waitGM');
+                    update_user_meta($_POST['userID'], 'hydBillet', esc_attr(strip_tags($_POST['billetGM'])));
+                    update_user_meta($_POST['userID'], 'regime', esc_attr(strip_tags($_POST['regime'])));
+                    wp_mail($email, 'Inscription pour les hydriades', 'Votre inscription pour les hydriades en tant que MJ a bien été reçue.', $headers);
+                }
             }
-        }
-        
+            if(!empty($_POST['billetPL']) && !empty($_POST['userID']) && !empty($_POST['regime'])){
+                if(get_userdata(esc_attr(strip_tags($_POST['userID'])))){
+                    update_user_meta($_POST['userID'], 'hydRole', 'waitPL');
+                    update_user_meta($_POST['userID'], 'hydBillet', esc_attr(strip_tags($_POST['billetPL'])));
+                    update_user_meta($_POST['userID'], 'regime', esc_attr(strip_tags($_POST['regime'])));
+                    wp_mail($email, 'Inscription pour les hydriades', 'Votre inscription pour les hydriades en tant que joueu­·r·se a bien été reçue.', $headers);
+                }
+            }
     }
     public function showParties(){
         $ifLangue = array();
@@ -300,7 +286,7 @@ class wp_hydriade_shortcode{
                             <div class="block" onclick="showOrHide('.get_the_ID().')">
                                 <button class="buPitch" id="buPitch'.get_the_ID().'">Pitch du scénario</button>
                             </div>
-                            <div id="'.get_the_ID().'" class="displayNone"><p>'.get_post_meta(get_the_ID(),'wp_party_pitch', true).'</p>';
+                            <div id="'.get_the_ID().'" class="displayNone"><p class="white-space">'.get_post_meta(get_the_ID(),'wp_party_pitch', true).'</p>';
                         echo 
                             '</div>
                         </div>';
