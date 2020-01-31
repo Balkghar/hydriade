@@ -50,32 +50,35 @@ jQuery(document).ready(function($) {
             action : 'showParties',
             language : vLanguage,
         },
-        success : function( response ) {
+        success : function(response) {
           $('#answer').html(response);
-          ajax_tricks();
         }
       });
-      
   }
   function ajax_tricks(){
     $('form').on('submit', function(e) {
-      $("input[type=submit]").prop('disabled', true);
+      $("input[type=submit]").attr('disabled', true);
       e.preventDefault();
       info_post = $(this).serialize();
       $.ajax({
         url : frontend_ajax_object.ajax_url,
         type : 'post',
         data : 'action=form_info&'+info_post,
-        success : function( response ) {
+        success : function() {
           show_part();
-          ajax_tricks();
         }
       });
     });
   }
-  ajax_tricks();
+  $("#submitPL").attr("disabled", true);
+  $("#submitGM").attr("disabled", true);
+  $("#regGM").click(function(){
+    $("#submitGM").attr("disabled", false);
+  });
+  $("#regPL").click(function(){
+    $("#submitPL").attr("disabled", false);
+  });
   $(".language").change(function() {
     show_part();
   });
-  
 });

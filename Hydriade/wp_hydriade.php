@@ -20,6 +20,7 @@ class wp_hydriade{
         add_action('init', array($this,'gestInscr'));
         add_action('init', array($this,'exportPDF'));
         add_action('publish_to_trash', array($this,'prevent_user'));
+        add_action('pending_to_publish', array($this,'prevent_gm'));
         add_action( 'admin_init', array($this,'hydriade_register_settings') );
         add_action('admin_menu', array($this,'hydriade_register_options_page'));
         add_action('add_meta_boxes', array($this,'add_party_meta_boxes')); //add meta boxes
@@ -53,6 +54,28 @@ class wp_hydriade{
     function admin_hydriade(){
         echo "<h1>Hydriade</h1>";
     }
+    function prevent_gm($post){
+        $urlSite = get_option('NameMail');
+        $headers .= "Return-Path: Hydriade <".$urlSite.">\r\n";
+        $headers .= "Reply-To: Hydriade <".$urlSite.">\r\n";
+        $headers .= "L'association de l'hydre\r\n";
+        $headers .= "From: Hydriade <".$urlSite.">\r\n"; 
+        $headers .= "MIME-Version: 1.0\r\n";
+        $headers .= "Content-type: text/plain; charset=utf-8\r\n";
+        $headers .= "X-Priority: 3\r\n";
+        $headers .= "X-Mailer: PHP". phpversion() ."\r\n";
+
+        if('wp_parties' == $post->post_type) {
+
+            $author_id = get_post_field ('post_author', $post->ID);
+
+            $GM_user = get_user_by('ID',$author_id);
+
+            $GM_mail = $GM_user->user_email;
+            wp_mail($GM_mail, 'La partie "'.str_replace('&#8217;','\'',get_the_title($post->ID)).'" a été publié', str_replace('&#8217;','\'',"Cher MJ, merci d’avoir proposé ta partie aux Hydriades! Elle a été publié !\nTu trouveras ci-dessous les informations relative à ta partie et tu recevras un mail lorsque des joueurs s’inscriront à celle-ci.\nMerci encore et à tout bientôt!\n\nTitre : ".get_the_title($post->ID)."\nUnivers de jeu : ".get_post_meta($post->ID,"wp_party_univers", true)."\nAmbiance : ".get_post_meta($post->ID,"wp_party_ambiance", true)."\nMJ : ".get_post_meta($post->ID,"wp_party_GM", true)."\nNombre de joueurs : ".get_post_meta($post->ID,"wp_party_players", true)."\nTemps estimé : ".get_post_meta($post->ID,"wp_party_time", true)."h\nLangue : ".get_post_meta($post->ID,"wp_party_language", true).""), $headers);
+        }
+
+    }
     function prevent_user($post){
 
         $urlSite = get_option('NameMail');
@@ -71,7 +94,7 @@ class wp_hydriade{
             foreach($users as $user){
                 delete_user_meta($user->ID, 'Party'.$post->ID, 'registeredWait');
                 $user_mail = $user->user_email;
-                wp_mail($user_mail, 'La partie "'.str_replace('&#8217;','\'',get_the_title($post->ID)).'" a été supprimé', 'La partie "'.get_the_title($post->ID).'" a été supprimé', $headers);
+                wp_mail($user_mail, 'La partie "'.str_replace('&#8217;','\'',get_the_title($post->ID)).'" a été supprimé', 'La partie "'.str_replace('&#8217;','\'',get_the_title($post->ID)).'" a été supprimée', $headers);
                 
             }
 
@@ -82,7 +105,7 @@ class wp_hydriade{
 
             $GM_mail = $GM_user->user_email;
 
-            wp_mail($GM_mail, 'La partie "'.str_replace('&#8217;','\'',get_the_title($post->ID)).'" a été supprimé', 'La partie "'.get_the_title($post->ID).'" a été supprimé', $headers);
+            wp_mail($GM_mail, 'La partie "'.str_replace('&#8217;','\'',get_the_title($post->ID)).'" a été supprimé', 'La partie "'.str_replace('&#8217;','\'',get_the_title($post->ID)).'" a été supprimé', $headers);
 
         }
         
@@ -282,7 +305,7 @@ class wp_hydriade{
 
                 update_user_meta($_POST['userIDInscr'], 'Party'.$_POST['postIDInscr'], 'Registered');
                 
-                wp_mail($email, "Inscription pour la partie ".str_replace('&#8217;','\'',get_the_title($_POST['postIDInscr'])), "Votre inscription pour la partie ".get_the_title($_POST['postIDInscr']). " a été acceptée.", $headers);
+                wp_mail($email, "Inscription pour la partie ".str_replace('&#8217;','\'',get_the_title($_POST['postIDInscr'])), "Votre inscription pour la partie ".str_replace('&#8217;','\'',get_the_title($_POST['postIDInscr'])). " a été acceptée.", $headers);
                 
                 wp_mail($GM_mail, $current_user->display_name." s'est inscrit pour la partie ".str_replace('&#8217;','\'',get_the_title($_POST['postIDInscr']))."", "Un joueur s'est inscrit à votre partie : ".$current_user->display_name."\nMail de contact : ". $email, $headers);
             }
@@ -295,7 +318,7 @@ class wp_hydriade{
 
                 delete_user_meta($_POST['userIDRefu'], 'Party'.$_POST['postIDRefu'], 'registeredWait');
 
-                wp_mail($email, "Inscription pour la partie ".str_replace('&#8217;','\'',get_the_title($_POST['postIDRefu'])), "Votre inscription pour la partie ".get_the_title($_POST['postIDRefu'])." a été refusée.", $headers);
+                wp_mail($email, "Inscription pour la partie ".str_replace('&#8217;','\'',get_the_title($_POST['postIDRefu'])), "Votre inscription pour la partie ".str_replace('&#8217;','\'',get_the_title($_POST['postIDRefu']))." a été refusée.", $headers);
 
             }
         }
@@ -313,7 +336,7 @@ class wp_hydriade{
 
                 delete_user_meta($_POST['userIDDe'], 'Party'.$_POST['postIDDe'], 'Registered');
 
-                wp_mail($email, 'Désinscription pour la partie '.str_replace('&#8217;','\'',get_the_title($_POST['postIDDe'])), 'Vous avez été désincrit de la partie '.get_the_title($_POST['postIDDe']), $headers);
+                wp_mail($email, 'Désinscription pour la partie '.str_replace('&#8217;','\'',get_the_title($_POST['postIDDe'])), 'Vous avez été désincrit de la partie '.str_replace('&#8217;','\'',get_the_title($_POST['postIDDe'])), $headers);
                 
                 wp_mail($GM_mail, $current_user->display_name." a été désinscrit pour la partie ".str_replace('&#8217;','\'',get_the_title($_POST['postIDInscr'])), "Un joueur a été désinscrit à votre partie : ".$current_user->display_name."\nMail de contact : ". $email, $headers);
 
@@ -693,8 +716,10 @@ class wp_hydriade{
      * 
      */
     function hydriade_register_settings() {
+        add_option( 'Registration', '1');
         add_option( 'NameMail', 'hydriade@hydre.ch');
         register_setting( 'HydriadeOption', 'NameMail');
+        register_setting( 'HydriadeOption', 'Registration');
     }
     /**
      * Ajout de la page pour la modification des options pour les hydriades
@@ -721,6 +746,23 @@ class wp_hydriade{
         <th scope="row"><label for="NameMail">Mail automatique pour les hydriades</label></th>
         <td><input type="text" id="NameMail" name="NameMail" value="<?php echo get_option('NameMail'); ?>" /></td>
         </tr>
+        <th scope="row"><label for="NameMail">Inscription différé</label></th>
+        <?php
+        $text = array(
+            'Text',
+            'Personne ne peut s\'inscrire',
+            'Que les MJs peuvent proposer des parties',
+            'Joueurs et MJs peuvent proposer et s\'inscrire à des parties',
+        );
+        for($i = 1; $i <= 3; $i++){
+            if(get_option('Registration') == $i){
+                echo'<tr><td>'.$text[$i].'</td><td><input type="radio" id="Registration" name="Registration" value="'.get_option('Registration').'"  checked></td></tr>';
+            }
+            else{
+                echo'<tr><td>'.$text[$i].'</td><td><input type="radio" id="Registration" name="Registration" value="'.$i.'"></td></tr>';
+            }
+        }
+        ?>
         </table>
         <?php  submit_button(); ?>
         </form>

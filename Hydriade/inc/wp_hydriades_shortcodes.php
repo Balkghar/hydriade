@@ -12,11 +12,8 @@ class wp_hydriade_shortcode{
 
         add_action('wp_ajax_form_info', array($this, 'form_info'));
         add_action('wp_ajax_nopriv_form_info', array($this, 'form_info'));
-
-
+        
         /**End Ajax function */
-
-
         add_action('showPartiesFunc', array($this, 'showParties'));
     }
     public function register_hydriade_shortcodes(){
@@ -34,7 +31,7 @@ class wp_hydriade_shortcode{
         {
             wp_footer();
             echo '
-            <form class="languageForm">
+            <form name="languea" class="languageForm">
             Langue : <br>
             <table class="languageTable">
                 <tr>
@@ -81,31 +78,26 @@ class wp_hydriade_shortcode{
             $headers .= "X-Priority: 3\r\n";
             $headers .= "X-Mailer: PHP". phpversion() ."\r\n";
 
+            $author_id = get_post_field ('post_author', $_POST['postIDDes']);
+
+            $GM_user = get_user_by('ID',$author_id);
+
+            $GM_mail = $GM_user->user_email;
 
             if(!empty($_POST['userID']) && !empty($_POST['postID'])){
                 if(get_userdata(esc_attr(strip_tags($_POST['userID']))) &&  get_post(esc_attr(strip_tags($_POST['postID'])))){
-                    update_user_meta($_POST['userID'], 'Party'.$_POST['postID'], 'registeredWait');
-                    wp_mail($email, 'Inscription à '.str_replace('&#8217;','\'',get_the_title($_POST['postID'])), 'Votre inscription à la partie "'.get_the_title($_POST['postID']).'" a bien été reçu.', $headers);
+                    update_user_meta($_POST['userID'], 'Party'.$_POST['postID'], 'Registered');
+                    wp_mail($email, 'Inscription à '.str_replace('&#8217;','\'',get_the_title($_POST['postID'])), "Cher joueur, tu as bien été inscrit à la partie détaillée ci-dessous.\nTu trouveras tous les détails de la partie ainsi que le mail de ton MJ plus bas dans ce mail.\nMerci encore pour ta participation et à très bientôt!\nMail du MJ : ".$GM_mail."\n\nTitre : ".get_the_title($_POST['postID'])."\nUnivers de jeu : ".get_post_meta($_POST['postID'],"wp_party_univers", true)."\nAmbiance : ".get_post_meta($_POST['postID'],"wp_party_ambiance", true)."\nMJ : ".get_post_meta($_POST['postID'],"wp_party_GM", true)."\nNombre de joueurs : ".get_post_meta($_POST['postID'],"wp_party_players", true)."\nTemps estimé : ".get_post_meta($_POST['postID'],"wp_party_time", true)."h\nLangue : ".get_post_meta($_POST['postID'],"wp_party_language", true)."", $headers);
+                    wp_mail($GM_mail, $current_user->display_name." s'est inscrit pour la partie ".str_replace('&#8217;','\'',get_the_title($_POST['postIDDes'])), "Un joueur s'est inscrit à votre partie : ".$current_user->display_name."\nMail de contact : ". $email, $headers);
+
                 }
             }
-            if(!empty($_POST['userIDCan']) && !empty($_POST['postIDCan'])){
-                if(get_userdata(esc_attr(strip_tags($_POST['userIDCan']))) &&  get_post(esc_attr(strip_tags($_POST['postIDCan'])))){
-                    delete_user_meta($_POST['userIDCan'], 'Party'.$_POST['postIDCan'], 'registeredWait');
-                    wp_mail($email, 'Annulation  d\'inscription à '.str_replace('&#8217;','\'',get_the_title($_POST['postIDCan'])), 'Votre annulation d\'inscription à la partie "'.get_the_title($_POST['postIDCan']).'" a bien été reçu.', $headers);
-                }
-            }    
             if(!empty($_POST['userIDDes']) && !empty($_POST['postIDDes'])){
                 if(get_userdata(esc_attr(strip_tags($_POST['userIDDes']))) && get_post(esc_attr(strip_tags($_POST['postIDDes'])))){
 
                     delete_user_meta($_POST['userIDDes'], 'Party'.$_POST['postIDDes'], 'Registered');
 
-                    $author_id = get_post_field ('post_author', $_POST['postIDDes']);
-
-                    $GM_user = get_user_by('ID',$author_id);
-
-                    $GM_mail = $GM_user->user_email;
-
-                    wp_mail($email, 'Désincription à '.str_replace('&#8217;','\'',get_the_title($_POST['postIDDes'])), 'Votre Désincription à la partie "'.get_the_title($_POST['postIDDes']).'" a bien été reçu.', $headers);
+                    wp_mail($email, 'Désincription à '.str_replace('&#8217;','\'',get_the_title($_POST['postIDDes'])), 'Votre Désincription à la partie "'.str_replace('&#8217;','\'',get_the_title($_POST['postIDDes'])).'" a bien été reçu.', $headers);
 
                     wp_mail($GM_mail, $current_user->display_name." s'est désinscrit pour la partie ".str_replace('&#8217;','\'',get_the_title($_POST['postIDDes'])), "Un joueur s'est désinscrit à votre partie : ".$current_user->display_name."\nMail de contact : ". $email, $headers);
 
@@ -113,6 +105,8 @@ class wp_hydriade_shortcode{
             }
             /**Vérifie si les données sont là */
             if(!empty($_POST['title']) && !empty($_POST['universe']) && !empty($_POST['ambiance']) && !empty($_POST['MJ']) && !empty($_POST['players']) && !empty($_POST['language']) && !empty($_POST['pitch']) && !empty($_POST['category'])  && !empty($_POST['time'])){
+                
+                
                 /**Créé le post et sauvegarde son ID */
                 $post_id = wp_insert_post(array(
                     'post_title' => esc_attr(strip_tags($_POST['title'])),
@@ -292,60 +286,56 @@ class wp_hydriade_shortcode{
                         </div>';
                         /**Vérifie si l'utilisateurs a le rôle nécessaire de s'inscrire à une partie */
                         foreach(get_user_meta(get_current_user_id(), 'hydRole') as $value){
-                            if($value == 'GM' || $value == 'PL'){
-                                $answer = get_user_meta(get_current_user_id(),'Party'.get_the_ID());
-                                if($answer){
-                                    foreach($answer as $valu){
-                                        if($valu == "Registered"){
-                                            echo 
-                                            '<br>
-                                            <form enctype="multipart/form-data" action="" name="desin" id="desin" method="post">
-                                            <input type="hidden" name="userIDDes" value="'.get_current_user_id().'">
-                                            <input type="hidden" name="postIDDes" value="'.get_the_ID().'">
-                                            <input type="submit" value="Se désinscrire de la partie">
-                                            </form>
-                                            ';
+                            if(get_option('Registration') != 1){
+                                if($value == 'GM' || $value == 'PL'){
+                                    if(get_option('Registration') == 3){
+                                        $answer = get_user_meta(get_current_user_id(),'Party'.get_the_ID());
+                                        if($answer){
+                                            foreach($answer as $valu){
+                                                if($valu == "Registered"){
+                                                    echo 
+                                                    '<br>
+                                                    <form enctype="multipart/form-data" action="" name="desin" id="desin" method="post">
+                                                    <input type="hidden" name="userIDDes" value="'.get_current_user_id().'">
+                                                    <input type="hidden" name="postIDDes" value="'.get_the_ID().'">
+                                                    <input type="submit" value="Se désinscrire de la partie">
+                                                    </form>
+                                                    ';
+                                                }
+                                            }
                                         }
-                                        else if($valu == "registeredWait"){
+                                        else{
+                                            if((get_post_meta(get_the_ID(),'wp_party_players', true)-$numItems) >= 1){
+                                                
+                                                if($registered && $write){
+                                                    echo 
+                                                    '<br>
+                                                    <form enctype="multipart/form-data" action="" name="add_player" id="add_player" method="post">
+                                                    <input type="hidden" name="userID" value="'.get_current_user_id().'">
+                                                    <input type="hidden" name="postID" value="'.get_the_ID().'">
+                                                    <input onclick="disableSubmit" type="submit" value="S\'inscrire à la partie">
+                                                    </form>
+                                                    ';
+                                                }
+                                            }
+                                        }
+                                    }
+                                    else if(get_option('Registration') == 2 || get_option('Registration') == 3){
+                                        $authr_id = get_post_field ('post_author',get_the_ID());
+                                        if($authr_id == get_current_user_id()){
                                             echo 
                                             '<br>
-                                            <form enctype="multipart/form-data" action="" name="cancel" id="cancel" method="post">
-                                            <input type="hidden" name="userIDCan" value="'.get_current_user_id().'">
-                                            <input type="hidden" name="postIDCan" value="'.get_the_ID().'">
-                                            <input type="submit" value="Annuler l\'inscription">
+                                            <form enctype="multipart/form-data" action="" name="del_party" id="del_party" method="post">
+                                            <input type="hidden" name="userIDdel_party" value="'.get_current_user_id().'">
+                                            <input type="hidden" name="postIDdel_party" value="'.get_the_ID().'">
+                                            <input type="submit" value="Supprimer la partie">
                                             </form>
                                             ';
                                         }
                                     }
                                 }
-                                else{
-                                    if((get_post_meta(get_the_ID(),'wp_party_players', true)-$numItems) >= 1){
-                                        
-                                        if($registered && $write){
-                                            echo 
-                                            '<br>
-                                            <form enctype="multipart/form-data" action="" name="add_player" id="add_player" method="post">
-                                            <input type="hidden" name="userID" value="'.get_current_user_id().'">
-                                            <input type="hidden" name="postID" value="'.get_the_ID().'">
-                                            <input onclick="disableSubmit" type="submit" value="S\'inscrire à la partie">
-                                            </form>
-                                            ';
-                                        }
-                                    }
-                                }
-                                $authr_id = get_post_field ('post_author',get_the_ID());
-                                if($authr_id == get_current_user_id()){
-                                    echo 
-                                    '<br>
-                                    <form enctype="multipart/form-data" action="" name="del_party" id="del_party" method="post">
-                                    <input type="hidden" name="userIDdel_party" value="'.get_current_user_id().'">
-                                    <input type="hidden" name="postIDdel_party" value="'.get_the_ID().'">
-                                    <input type="submit" value="Supprimer la partie">
-                                    </form>
-                                    ';
-                                }
-                                
                             }
+                            
                         }
                         echo '</div></div>';
                     
@@ -355,7 +345,7 @@ class wp_hydriade_shortcode{
                 $current_user = wp_get_current_user();
                 /**Vérifie si l'utilisateur est un maître de jeu */
                 foreach(get_user_meta(get_current_user_id(), 'hydRole') as $value){
-                    if($value == 'GM'){
+                    if($value == 'GM' && (get_option('Registration') == 2 || get_option('Registration') == 3)){
                         if($write && $registered){
                             echo '<div class="column"><div class="card"><button onclick="showOrHide('.$term->term_id.')"><h3><b>+Ajouter une partie+</b></h3></button><div id="'.$term->term_id.'" class="displayNone">
                             <form enctype="multipart/form-data" action="" name="new_post" id="new_post" method="post">
@@ -411,21 +401,21 @@ class wp_hydriade_shortcode{
             <p>Si vous avez acheté un billet pour les hydriades, c\'est ici que vous devez entrez votre numéro de billet pour pouvoir proposer et participer à des parties</p>
             <form enctype="multipart/form-data" action="" name="becomeGM" id="becomeGM" method="post">
             Régime alimentaire : 
-            <input type="radio" name="regime" value="Vege"> Végétarien
-            <input type="radio" name="regime" value="Normal" checked> Normal<br>
+            <input type="radio" name="regime" id="regGM" value="Vege"> Végétarien
+            <input type="radio" name="regime" id="regGM" value="Normal"> Normal<br>
             Numéro de billet :<br>
             <input type="text" name="billetGM">
             <input name="userID" type="hidden" value="'.get_current_user_id().'">
-            <input type="submit" value="Je veux devenir un maître de jeu !">
+            <input type="submit" id="submitGM" value="Je veux devenir un maître de jeu !">
             </form><br>
             <form enctype="multipart/form-data" action="" name="becomePL" id="becomePL" method="post">
             Régime alimentaire : 
-            <input type="radio" name="regime" value="Vege"> Végétarien
-            <input type="radio" name="regime" value="Normal" checked> Normal<br>
+            <input type="radio" name="regime" id="regPL" value="Vege"> Végétarien
+            <input type="radio" name="regime" id="regPL" value="Normal"> Normal<br>
             Numéro de billet :<br>
             <input type="text" name="billetPL">
             <input name="userID" type="hidden" value="'.get_current_user_id().'">
-            <input type="submit" value="Je veux devenir un joueur !">
+            <input type="submit" id="submitPL" value="Je veux devenir un joueur !">
             </form>';
         }
         
