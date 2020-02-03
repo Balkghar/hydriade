@@ -6,7 +6,6 @@ class wp_hydriade_shortcode{
         add_action('init', array($this,'form_info'));
 
         /**Ajax function */
-
         add_action('wp_ajax_showParties', array($this, 'showParties'));
         add_action('wp_ajax_nopriv_showParties', array($this, 'showParties'));
 
@@ -24,8 +23,6 @@ class wp_hydriade_shortcode{
      * 
      */
     public function show_parties(){
-
-        
         /**vérifie si l'utilisateurs est en ligne */
         if(is_user_logged_in())
         {
@@ -39,12 +36,12 @@ class wp_hydriade_shortcode{
                     <td><input class="language" type="checkbox" id="french" name="french" value="French" checked></td>
                 </tr>
                 <tr>
-                    <td><label>Anglais : </label></td>
-                    <td><input class="language" type="checkbox" id="english" name="english" value="Anglais" checked></td>
+                    <td><label>English : </label></td>
+                    <td><input class="language" type="checkbox" id="english" name="english" value="English" checked></td>
                 </tr>
                 <tr>
-                    <td><label>Allemand : </label></td>
-                    <td><input class="language" type="checkbox" id="deutsch" name="deutsch" value="Allemand" checked></td>
+                    <td><label>Deutsch : </label></td>
+                    <td><input class="language" type="checkbox" id="deutsch" name="deutsch" value="Deutsch" checked></td>
                 </tr>
             </table>
             </form>';
@@ -78,16 +75,18 @@ class wp_hydriade_shortcode{
             $headers .= "X-Priority: 3\r\n";
             $headers .= "X-Mailer: PHP". phpversion() ."\r\n";
 
-            $author_id = get_post_field ('post_author', $_POST['postIDDes']);
-
-            $GM_user = get_user_by('ID',$author_id);
-
-            $GM_mail = $GM_user->user_email;
-
             if(!empty($_POST['userID']) && !empty($_POST['postID'])){
                 if(get_userdata(esc_attr(strip_tags($_POST['userID']))) &&  get_post(esc_attr(strip_tags($_POST['postID'])))){
+                    
+                    $author_id = get_post_field ('post_author', $_POST['postID']);
+
+                    $GM_user = get_user_by('ID',$author_id);
+
+                    $GM_mail = $GM_user->user_email;
+
                     update_user_meta($_POST['userID'], 'Party'.$_POST['postID'], 'Registered');
-                    wp_mail($email, 'Inscription à '.str_replace('&#8217;','\'',get_the_title($_POST['postID'])), "Cher joueur, tu as bien été inscrit à la partie détaillée ci-dessous.\nTu trouveras tous les détails de la partie ainsi que le mail de ton MJ plus bas dans ce mail.\nMerci encore pour ta participation et à très bientôt!\nMail du MJ : ".$GM_mail."\n\nTitre : ".get_the_title($_POST['postID'])."\nUnivers de jeu : ".get_post_meta($_POST['postID'],"wp_party_univers", true)."\nAmbiance : ".get_post_meta($_POST['postID'],"wp_party_ambiance", true)."\nMJ : ".get_post_meta($_POST['postID'],"wp_party_GM", true)."\nNombre de joueurs : ".get_post_meta($_POST['postID'],"wp_party_players", true)."\nTemps estimé : ".get_post_meta($_POST['postID'],"wp_party_time", true)."h\nLangue : ".get_post_meta($_POST['postID'],"wp_party_language", true)."", $headers);
+                    wp_mail($email, 'Inscription à '.str_replace('&#8217;','\'',get_the_title($_POST['postID'])), str_replace('&#8217;','\'',"Cher joueur, tu as bien été inscrit à la partie détaillée ci-dessous.\nTu trouveras tous les détails de la partie ainsi que le mail de ton MJ plus bas dans ce mail.\nMerci encore pour ta participation et à très bientôt!\nMail du MJ : ".$GM_mail."\n\nTitre : ".get_the_title($_POST['postID'])."\nUnivers de jeu : ".get_post_meta($_POST['postID'],"wp_party_univers", true)."\nAmbiance : ".get_post_meta($_POST['postID'],"wp_party_ambiance", true)."\nMJ : ".get_post_meta($_POST['postID'],"wp_party_GM", true)."\nNombre de joueurs : ".get_post_meta($_POST['postID'],"wp_party_players", true)."\nTemps estimé : ".get_post_meta($_POST['postID'],"wp_party_time", true)."h\nLangue : ".get_post_meta($_POST['postID'],"wp_party_language", true))."", $headers);
+
                     wp_mail($GM_mail, $current_user->display_name." s'est inscrit pour la partie ".str_replace('&#8217;','\'',get_the_title($_POST['postIDDes'])), "Un joueur s'est inscrit à votre partie : ".$current_user->display_name."\nMail de contact : ". $email, $headers);
 
                 }
@@ -95,6 +94,12 @@ class wp_hydriade_shortcode{
             if(!empty($_POST['userIDDes']) && !empty($_POST['postIDDes'])){
                 if(get_userdata(esc_attr(strip_tags($_POST['userIDDes']))) && get_post(esc_attr(strip_tags($_POST['postIDDes'])))){
 
+                    
+                    $author_id = get_post_field ('post_author', $_POST['postIDDes']);
+
+                    $GM_user = get_user_by('ID',$author_id);
+
+                    $GM_mail = $GM_user->user_email;
                     delete_user_meta($_POST['userIDDes'], 'Party'.$_POST['postIDDes'], 'Registered');
 
                     wp_mail($email, 'Désincription à '.str_replace('&#8217;','\'',get_the_title($_POST['postIDDes'])), 'Votre Désincription à la partie "'.str_replace('&#8217;','\'',get_the_title($_POST['postIDDes'])).'" a bien été reçu.', $headers);
@@ -125,6 +130,9 @@ class wp_hydriade_shortcode{
                 update_post_meta($post_id, 'wp_party_language', esc_attr(strip_tags($_POST['language'])));
                 update_post_meta($post_id, 'wp_party_time', esc_attr(strip_tags($_POST['time'])));
                 update_post_meta($post_id, 'wp_party_players', esc_attr(strip_tags($_POST['players'])));
+
+                wp_mail($email, 'La partie "'.str_replace('&#8217;','\'',get_the_title($post_id)).'" a bien été reçue', 'Votre partie a bien été reçue, elle est en cours de validation', $headers);
+
             }
             if(!empty($_POST['userIDdel_party']) && !empty($_POST['postIDdel_party'])){
                 $authr_id = get_post_field ('post_author',$_POST['postIDdel_party']);
@@ -167,8 +175,8 @@ class wp_hydriade_shortcode{
             else{
                 $ifLangue = array(
                     "Français",
-                    "Anglais",
-                    "Allemand"
+                    "English",
+                    "Deutsch"
                 );
             }
             
@@ -176,14 +184,14 @@ class wp_hydriade_shortcode{
         else{
             $ifLangue = array(
                 "Français",
-                "Anglais",
-                "Allemand"
+                "English",
+                "Deutsch"
             );
         }
         $Languages = array(
             "french" => "Français",
-            "english" => "Anglais",
-            "deutsch" => "Allemand"
+            "english" => "English",
+            "deutsch" => "Deutsch"
         );
         
         /**Permet d'obtenir la taxonomy qu'on a créé avant */
@@ -259,7 +267,7 @@ class wp_hydriade_shortcode{
                         <p><B>Ambiance : </B>'.get_post_meta(get_the_ID(),'wp_party_ambiance', true).'</p>
                         <p><B>MJ : </B>'.get_post_meta(get_the_ID(),'wp_party_GM', true).'</p>
                         <p><B>Nombre de joueurs : </B>'.get_post_meta(get_the_ID(),'wp_party_players', true).'</p>
-                        <p><B>Place restante : </B>'.(get_post_meta(get_the_ID(),'wp_party_players', true)-$numItems).'</p>
+                        <p><B>Place(s) restante(s) : </B>'.(get_post_meta(get_the_ID(),'wp_party_players', true)-$numItems).'</p>
                         <p><B>Temps estimé : </B>'.get_post_meta(get_the_ID(),'wp_party_time', true).'h</p>
                         <p><B>Langue : </B>'.get_post_meta(get_the_ID(),'wp_party_language', true).'</p>';
                         echo '<p><b>Joueu·r·se·s inscrit·e·s : </b>';
@@ -288,7 +296,7 @@ class wp_hydriade_shortcode{
                         foreach(get_user_meta(get_current_user_id(), 'hydRole') as $value){
                             if(get_option('Registration') != 1){
                                 if($value == 'GM' || $value == 'PL'){
-                                    if(get_option('Registration') == 3){
+                                    if(get_option('Registration') == 3 || get_option('Registration') == 2){
                                         $answer = get_user_meta(get_current_user_id(),'Party'.get_the_ID());
                                         if($answer){
                                             foreach($answer as $valu){
@@ -319,8 +327,6 @@ class wp_hydriade_shortcode{
                                                 }
                                             }
                                         }
-                                    }
-                                    else if(get_option('Registration') == 2 || get_option('Registration') == 3){
                                         $authr_id = get_post_field ('post_author',get_the_ID());
                                         if($authr_id == get_current_user_id()){
                                             echo 

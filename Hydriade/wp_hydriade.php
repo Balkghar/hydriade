@@ -72,7 +72,7 @@ class wp_hydriade{
             $GM_user = get_user_by('ID',$author_id);
 
             $GM_mail = $GM_user->user_email;
-            wp_mail($GM_mail, 'La partie "'.str_replace('&#8217;','\'',get_the_title($post->ID)).'" a été publié', str_replace('&#8217;','\'',"Cher MJ, merci d’avoir proposé ta partie aux Hydriades! Elle a été publié !\nTu trouveras ci-dessous les informations relative à ta partie et tu recevras un mail lorsque des joueurs s’inscriront à celle-ci.\nMerci encore et à tout bientôt!\n\nTitre : ".get_the_title($post->ID)."\nUnivers de jeu : ".get_post_meta($post->ID,"wp_party_univers", true)."\nAmbiance : ".get_post_meta($post->ID,"wp_party_ambiance", true)."\nMJ : ".get_post_meta($post->ID,"wp_party_GM", true)."\nNombre de joueurs : ".get_post_meta($post->ID,"wp_party_players", true)."\nTemps estimé : ".get_post_meta($post->ID,"wp_party_time", true)."h\nLangue : ".get_post_meta($post->ID,"wp_party_language", true).""), $headers);
+            wp_mail($GM_mail, 'La partie "'.str_replace('&#8217;','\'',get_the_title($post->ID)).'" a été publiée', str_replace('&#8217;','\'',"Cher MJ, merci d’avoir proposé ta partie aux Hydriades! Elle a été publiée !\nTu trouveras ci-dessous les informations relatives à ta partie et tu recevras un mail lorsque des joueurs s’inscriront à celle-ci.\nMerci encore et à tout bientôt!\n\nTitre : ".get_the_title($post->ID)."\nUnivers de jeu : ".get_post_meta($post->ID,"wp_party_univers", true)."\nAmbiance : ".get_post_meta($post->ID,"wp_party_ambiance", true)."\nMJ : ".get_post_meta($post->ID,"wp_party_GM", true)."\nNombre de joueurs : ".get_post_meta($post->ID,"wp_party_players", true)."\nTemps estimé : ".get_post_meta($post->ID,"wp_party_time", true)."h\nLangue : ".get_post_meta($post->ID,"wp_party_language", true).""), $headers);
         }
 
     }
@@ -94,7 +94,7 @@ class wp_hydriade{
             foreach($users as $user){
                 delete_user_meta($user->ID, 'Party'.$post->ID, 'registeredWait');
                 $user_mail = $user->user_email;
-                wp_mail($user_mail, 'La partie "'.str_replace('&#8217;','\'',get_the_title($post->ID)).'" a été supprimé', 'La partie "'.str_replace('&#8217;','\'',get_the_title($post->ID)).'" a été supprimée', $headers);
+                wp_mail($user_mail, 'La partie "'.str_replace('&#8217;','\'',get_the_title($post->ID)).'" a été supprimée', 'La partie "'.str_replace('&#8217;','\'',get_the_title($post->ID)).'" a été supprimée', $headers);
                 
             }
 
@@ -105,7 +105,7 @@ class wp_hydriade{
 
             $GM_mail = $GM_user->user_email;
 
-            wp_mail($GM_mail, 'La partie "'.str_replace('&#8217;','\'',get_the_title($post->ID)).'" a été supprimé', 'La partie "'.str_replace('&#8217;','\'',get_the_title($post->ID)).'" a été supprimé', $headers);
+            wp_mail($GM_mail, 'La partie "'.str_replace('&#8217;','\'',get_the_title($post->ID)).'" a été supprimée', 'La partie "'.str_replace('&#8217;','\'',get_the_title($post->ID)).'" a été supprimée', $headers);
 
         }
         
@@ -517,8 +517,8 @@ class wp_hydriade{
         <?php
         $Languages = array(
             "french" => "Français",
-            "english" => "Anglais",
-            "deutsch" => "Allemand",
+            "english" => "English",
+            "deutsch" => "Deutsch",
         );
         echo '<div class="field">
         <label for="wp_party_language">La langue de votre partie</label>

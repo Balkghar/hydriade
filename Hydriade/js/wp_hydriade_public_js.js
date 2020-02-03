@@ -70,8 +70,10 @@ jQuery(document).ready(function($) {
       });
     });
   }
+
   $("#submitPL").attr("disabled", true);
   $("#submitGM").attr("disabled", true);
+
   $("#regGM").click(function(){
     $("#submitGM").attr("disabled", false);
   });
