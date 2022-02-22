@@ -61,12 +61,12 @@ class wp_hydriade_shortcode{
     /**Fonction permettant l'ajout d'un joueur à une partie */
     public function form_info(){
 
-            $current_user = get_currentuserinfo();
+            $current_user = wp_get_current_user();
 
             $email = $current_user->user_email;
 
             $urlSite = get_option('NameMail');
-            $headers .= "Reply-To: Hydriade <".$urlSite.">\r\n";
+            $headers = "Reply-To: Hydriade <".$urlSite.">\r\n";
             $headers .= "Return-Path: Hydriade <".$urlSite.">\r\n";
             $headers .= "From: Hydriade <".$urlSite.">\r\n"; 
             $headers .= "L'association de l'hydre\r\n";

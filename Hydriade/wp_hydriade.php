@@ -2,12 +2,12 @@
 /**
  * Plugin Name:       Hydriade
  * Plugin URI:        -
- * Description:       Plugin pour gérer les évenements des hydriades
- * Version:           1.0.0
- * Requires at least: 5.2
+ * Description:       Plugin pour gérer les inscriptions aux parties de JDR des hydriades
+ * Version:           2.0.0
+ * Requires at least: 5.8.3
  * Requires PHP:      7.2
- * Author:            Hugo Germano & Esteban Lopez
- * Author URI:        -
+ * Author:            Hugo Germano 
+ * Author URI:        https://germa.no
  * License:           GPL v2 or later
  * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
  */
@@ -26,11 +26,11 @@ class wp_hydriade{
         add_action('add_meta_boxes', array($this,'add_party_meta_boxes')); //add meta boxes
         add_filter('the_content', array($this,'prepend_party_meta_to_content')); //gets our meta data and dispayed it before the content
         add_action('save_post_wp_parties', array($this,'save_party')); //save party
-        add_action( 'init', array($this,'add_custom_taxonomy'), 0 );
         add_action('wp_enqueue_scripts', array($this,'enqueue_public_scripts_and_styles')); //public scripts and styles
         add_action('admin_enqueue_scripts', array($this,'enqueue_admin_scripts_and_styles'));
         register_activation_hook(__FILE__, array($this,'plugin_activate')); //activate hook
         register_deactivation_hook(__FILE__, array($this,'plugin_deactivate')); //deactivate hook
+        add_action( 'init', array($this,'add_custom_taxonomy'), 0 );
     }
     //Créé un menu sur l'administration de wordpress
     function custom_menu() { 
@@ -48,7 +48,7 @@ class wp_hydriade{
         add_submenu_page('hydriade', 'Gestion des rôles', 'Gestion des rôles', 'edit_posts', 'admin_HydRole',array($this,'gestRole'));
         add_submenu_page('hydriade', 'Gestion des inscriptions', 'Gestion des inscriptions', 'edit_posts', 'admin_HydPartie',array($this,'gestPlayer'));
         add_submenu_page('hydriade', 'Exportation des parties', 'Exportation des parties', 'edit_posts', 'export_pdf',array($this,'Export_pdf'));
-
+        add_submenu_page('hydriade', 'Ajouter un départ', 'Ajouter un départ', 'edit_posts','edit-tags.php?taxonomy=types');
     }
     /**Page d'accueil de l'extension */
     function admin_hydriade(){
@@ -56,7 +56,7 @@ class wp_hydriade{
     }
     function prevent_gm($post){
         $urlSite = get_option('NameMail');
-        $headers .= "Return-Path: Hydriade <".$urlSite.">\r\n";
+        $headers = "Return-Path: Hydriade <".$urlSite.">\r\n";
         $headers .= "Reply-To: Hydriade <".$urlSite.">\r\n";
         $headers .= "L'association de l'hydre\r\n";
         $headers .= "From: Hydriade <".$urlSite.">\r\n"; 
@@ -79,7 +79,7 @@ class wp_hydriade{
     function prevent_user($post){
 
         $urlSite = get_option('NameMail');
-        $headers .= "Return-Path: Hydriade <".$urlSite.">\r\n";
+        $headers = "Return-Path: Hydriade <".$urlSite.">\r\n";
         $headers .= "Reply-To: Hydriade <".$urlSite.">\r\n";
         $headers .= "L'association de l'hydre\r\n";
         $headers .= "From: Hydriade <".$urlSite.">\r\n"; 
@@ -281,7 +281,7 @@ class wp_hydriade{
     /**Fonction pour gérer les inscriptons aux parties */
     function gestInscr(){
         $urlSite = get_option('NameMail');
-        $headers .= "Return-Path: Hydriade <".$urlSite.">\r\n";
+        $headers = "Return-Path: Hydriade <".$urlSite.">\r\n";
         $headers .= "Reply-To: Hydriade <".$urlSite.">\r\n";
         $headers .= "L'association de l'hydre\r\n";
         $headers .= "From: Hydriade <".$urlSite.">\r\n"; 
@@ -385,7 +385,7 @@ class wp_hydriade{
     /**Permet d'ajouter les utilisateurs voulant devenir MJ ou joueur et ayant été validé par un admin ou de les supprimer*/
     public function addGMOrPLW(){
         $urlSite = get_option('NameMail');
-        $headers .= "Return-Path: Hydriade <".$urlSite.">\r\n";
+        $headers = "Return-Path: Hydriade <".$urlSite.">\r\n";
         $headers .= "Reply-To: Hydriade <".$urlSite.">\r\n";
         $headers .= "L'association de l'hydre\r\n";
         $headers .= "From: Hydriade <".$urlSite.">\r\n"; 
@@ -709,7 +709,6 @@ class wp_hydriade{
           'query_var' => true,
           'rewrite' => array( 'slug' => 'type' ),
         ));
-        add_submenu_page('hydriade', 'Ajouter un départ', 'Ajouter un départ', 'edit_posts', 'edit-tags.php?taxonomy=types',false);
     }
     /**
      * Fonction d'enregistrement des paramètres pour l'extension des hydriades
